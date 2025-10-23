@@ -1,0 +1,252 @@
+id,iso2,iso3,name,phone_code,region,sub_region,income_level,created_at,updated_at
+1,AF,AFG,Afghanistan,93,Asia,Southern Asia,LIC,2024-12-01,2024-12-01
+2,AX,ALA,Aland Islands,358,Europe,Northern Europe,,,
+3,AL,ALB,Albania,355,Europe,Southern Europe,UMC,2024-12-01,2024-12-01
+4,DZ,DZA,Algeria,213,Africa,Northern Africa,UMC,2025-01-26,2025-01-26
+5,AS,ASM,American Samoa,1,Oceania,Polynesia,HIC,2024-12-01,2024-12-01
+6,AD,AND,Andorra,376,Europe,Southern Europe,HIC,2024-12-01,2024-12-01
+7,AO,AGO,Angola,244,Africa,Middle Africa,LMC,2024-12-01,2024-12-01
+8,AI,AIA,Anguilla,1,Americas,Caribbean,,,
+9,AQ,ATA,Antarctica,672,Polar,,,,
+10,AG,ATG,Antigua and Barbuda,1,Americas,Caribbean,HIC,2024-12-01,2024-12-01
+11,AR,ARG,Argentina,54,Americas,South America,UMC,2024-12-01,2024-12-01
+12,AM,ARM,Armenia,374,Asia,Western Asia,UMC,2024-12-01,2024-12-01
+13,AW,ABW,Aruba,297,Americas,Caribbean,HIC,2024-12-01,2024-12-01
+14,AU,AUS,Australia,61,Oceania,Australia and New Zealand,HIC,2024-12-01,2024-12-01
+15,AT,AUT,Austria,43,Europe,Western Europe,HIC,2024-12-01,2024-12-01
+16,AZ,AZE,Azerbaijan,994,Asia,Western Asia,UMC,2024-12-01,2024-12-01
+17,BS,BHS,"Bahamas, The",1,Americas,Caribbean,HIC,2024-12-01,2024-12-01
+18,BH,BHR,Bahrain,973,Asia,Western Asia,HIC,2024-12-01,2024-12-01
+19,BD,BGD,Bangladesh,880,Asia,Southern Asia,LMC,2024-12-01,2024-12-01
+20,BB,BRB,Barbados,1,Americas,Caribbean,HIC,2024-12-01,2024-12-01
+21,BY,BLR,Belarus,375,Europe,Eastern Europe,UMC,2024-12-01,2024-12-01
+22,BE,BEL,Belgium,32,Europe,Western Europe,HIC,2024-12-01,2024-12-01
+23,BZ,BLZ,Belize,501,Americas,Central America,UMC,2024-12-01,2024-12-01
+24,BJ,BEN,Benin,229,Africa,Western Africa,LMC,2024-12-01,2024-12-01
+25,BM,BMU,Bermuda,1,Americas,Northern America,HIC,2024-12-01,2024-12-01
+26,BT,BTN,Bhutan,975,Asia,Southern Asia,LMC,2024-12-01,2024-12-01
+27,BO,BOL,Bolivia,591,Americas,South America,LMC,2024-12-01,2024-12-01
+28,BQ,BES,"Bonaire, Sint Eustatius And Saba",599,Americas,Caribbean,,,
+29,BA,BIH,Bosnia and Herzegovina,387,Europe,Southern Europe,UMC,2024-12-01,2024-12-01
+30,BW,BWA,Botswana,267,Africa,Southern Africa,UMC,2024-12-01,2024-12-01
+31,BV,BVT,Bouvet Island,55,,,,,
+32,BR,BRA,Brazil,55,Americas,South America,UMC,2024-12-01,2024-12-01
+33,IO,IOT,British Indian Ocean Territory,246,Africa,Eastern Africa,,,
+34,BN,BRN,Brunei Darussalam,673,Asia,South-Eastern Asia,HIC,2024-12-01,2024-12-01
+35,BG,BGR,Bulgaria,359,Europe,Eastern Europe,HIC,2024-12-01,2024-12-01
+36,BF,BFA,Burkina Faso,226,Africa,Western Africa,LIC,2024-12-01,2024-12-01
+37,BI,BDI,Burundi,257,Africa,Eastern Africa,LIC,2024-12-01,2024-12-01
+38,KH,KHM,Cambodia,855,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+39,CM,CMR,Cameroon,237,Africa,Middle Africa,LMC,2025-01-26,2025-01-26
+40,CA,CAN,Canada,1,Americas,Northern America,HIC,2024-12-01,2024-12-01
+41,CV,CPV,Cabo Verde,238,Africa,Western Africa,UMC,2025-08-01,2025-08-01
+42,KY,CYM,Cayman Islands,1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+43,CF,CAF,Central African Republic,236,Africa,Middle Africa,LIC,2024-12-01,2024-12-01
+44,TD,TCD,Chad,235,Africa,Middle Africa,LIC,2025-01-26,2025-01-26
+45,CL,CHL,Chile,56,Americas,South America,HIC,2025-01-26,2025-01-26
+46,CN,CHN,China,86,Asia,Eastern Asia,UMC,2025-01-26,2025-01-26
+47,CX,CXR,Christmas Island,61,Oceania,Australia and New Zealand,,,
+48,CC,CCK,Cocos (Keeling) Islands,61,Oceania,Australia and New Zealand,,,
+49,CO,COL,Colombia,57,Americas,South America,UMC,2025-01-26,2025-01-26
+50,KM,COM,Comoros,269,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+51,CG,COG,"Congo, Rep.",242,Africa,Middle Africa,LMC,2025-01-26,2025-01-26
+52,CK,COK,Cook Islands,682,Oceania,Polynesia,,,
+53,CR,CRI,Costa Rica,506,Americas,Central America,HIC,2025-08-01,2025-08-01
+54,CI,CIV,Cote d'Ivoire,225,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+55,HR,HRV,Croatia,385,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+56,CU,CUB,Cuba,53,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+57,CW,CUW,Curacao,599,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+58,CY,CYP,Cyprus,357,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+59,CZ,CZE,Czechia,420,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+60,CD,COD,"Congo, Dem. Rep.",243,Africa,Middle Africa,LIC,2025-01-26,2025-01-26
+61,DK,DNK,Denmark,45,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+62,DJ,DJI,Djibouti,253,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+63,DM,DMA,Dominica,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+64,DO,DOM,Dominican Republic,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+65,TL,TLS,Timor-Leste,670,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+66,EC,ECU,Ecuador,593,Americas,South America,UMC,2025-01-26,2025-01-26
+67,EG,EGY,"Egypt, Arab Rep.",20,Africa,Northern Africa,LMC,2025-01-26,2025-01-26
+68,SV,SLV,El Salvador,503,Americas,Central America,UMC,2025-01-26,2025-01-26
+69,GQ,GNQ,Equatorial Guinea,240,Africa,Middle Africa,UMC,2025-01-26,2025-01-26
+70,ER,ERI,Eritrea,291,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+71,EE,EST,Estonia,372,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+72,ET,ETH,Ethiopia,251,Africa,Eastern Africa,INX,2025-08-01,2025-08-01
+73,FK,FLK,Falkland Islands,500,Americas,South America,,,
+74,FO,FRO,Faroe Islands,298,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+75,FJ,FJI,Fiji,679,Oceania,Melanesia,UMC,2025-01-26,2025-01-26
+76,FI,FIN,Finland,358,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+77,FR,FRA,France,33,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+78,GF,GUF,French Guiana,594,Americas,South America,,,
+79,PF,PYF,French Polynesia,689,Oceania,Polynesia,HIC,2025-01-26,2025-01-26
+80,TF,ATF,French Southern Territories,262,Africa,Southern Africa,,,
+81,GA,GAB,Gabon,241,Africa,Middle Africa,UMC,2025-01-26,2025-01-26
+82,GM,GMB,"Gambia, The",220,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+83,GE,GEO,Georgia,995,Asia,Western Asia,UMC,2025-01-26,2025-01-26
+84,DE,DEU,Germany,49,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+85,GH,GHA,Ghana,233,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+86,GI,GIB,Gibraltar,350,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+87,GR,GRC,Greece,30,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+88,GL,GRL,Greenland,299,Americas,Northern America,HIC,2025-01-26,2025-01-26
+89,GD,GRD,Grenada,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+90,GP,GLP,Guadeloupe,590,Americas,Caribbean,,,
+91,GU,GUM,Guam,1,Oceania,Micronesia,HIC,2025-01-26,2025-01-26
+92,GT,GTM,Guatemala,502,Americas,Central America,UMC,2025-01-26,2025-01-26
+93,GG,GGY,Guernsey And Alderney,44,Europe,Northern Europe,,,
+94,GN,GIN,Guinea,224,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+95,GW,GNB,Guinea-Bissau,245,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+96,GY,GUY,Guyana,592,Americas,South America,HIC,2025-01-26,2025-01-26
+97,HT,HTI,Haiti,509,Americas,Caribbean,LMC,2025-01-26,2025-01-26
+98,HM,HMD,Heard Island and McDonald Islands,672,,,,,
+99,HN,HND,Honduras,504,Americas,Central America,LMC,2025-01-26,2025-01-26
+100,HK,HKG,"Hong Kong SAR, China",852,Asia,Eastern Asia,HIC,2025-01-26,2025-01-26
+101,HU,HUN,Hungary,36,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+102,IS,ISL,Iceland,354,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+103,IN,IND,India,91,Asia,Southern Asia,LMC,2025-01-26,2025-01-26
+104,ID,IDN,Indonesia,62,Asia,South-Eastern Asia,UMC,2025-01-26,2025-01-26
+105,IR,IRN,"Iran, Islamic Rep.",98,Asia,Southern Asia,UMC,2025-01-26,2025-01-26
+106,IQ,IRQ,Iraq,964,Asia,Western Asia,UMC,2025-01-26,2025-01-26
+107,IE,IRL,Ireland,353,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+108,IL,ISR,Israel,972,Asia,Western Asia,HIC,2025-01-26,2025-01-26
+109,IT,ITA,Italy,39,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+110,JM,JAM,Jamaica,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+111,JP,JPN,Japan,81,Asia,Eastern Asia,HIC,2025-01-26,2025-01-26
+112,JE,JEY,Jersey,44,Europe,Northern Europe,,,
+113,JO,JOR,Jordan,962,Asia,Western Asia,LMC,2025-01-26,2025-01-26
+114,KZ,KAZ,Kazakhstan,7,Asia,Central Asia,UMC,2025-01-26,2025-01-26
+115,KE,KEN,Kenya,254,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+116,KI,KIR,Kiribati,686,Oceania,Micronesia,LMC,2025-01-26,2025-01-26
+117,XK,XKX,Kosovo,383,Europe,Eastern Europe,UMC,2025-01-26,2025-01-26
+118,KW,KWT,Kuwait,965,Asia,Western Asia,HIC,2025-01-26,2025-01-26
+119,KG,KGZ,Kyrgyz Republic,996,Asia,Central Asia,LMC,2025-01-26,2025-01-26
+120,LA,LAO,Lao PDR,856,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+121,LV,LVA,Latvia,371,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+122,LB,LBN,Lebanon,961,Asia,Western Asia,LMC,2025-01-26,2025-01-26
+123,LS,LSO,Lesotho,266,Africa,Southern Africa,LMC,2025-01-26,2025-01-26
+124,LR,LBR,Liberia,231,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+125,LY,LBY,Libya,218,Africa,Northern Africa,UMC,2025-01-26,2025-01-26
+126,LI,LIE,Liechtenstein,423,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+127,LT,LTU,Lithuania,370,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+128,LU,LUX,Luxembourg,352,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+129,MO,MAC,"Macao SAR, China",853,Asia,Eastern Asia,HIC,2025-01-26,2025-01-26
+130,MK,MKD,North Macedonia,389,Europe,Southern Europe,UMC,2025-01-26,2025-01-26
+131,MG,MDG,Madagascar,261,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+132,MW,MWI,Malawi,265,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+133,MY,MYS,Malaysia,60,Asia,South-Eastern Asia,UMC,2025-01-26,2025-01-26
+134,MV,MDV,Maldives,960,Asia,Southern Asia,UMC,2025-01-26,2025-01-26
+135,ML,MLI,Mali,223,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+136,MT,MLT,Malta,356,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+137,IM,IMN,Isle of Man,44,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+138,MH,MHL,Marshall Islands,692,Oceania,Micronesia,UMC,2025-01-26,2025-01-26
+139,MQ,MTQ,Martinique,596,Americas,Caribbean,,,
+140,MR,MRT,Mauritania,222,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+141,MU,MUS,Mauritius,230,Africa,Eastern Africa,UMC,2025-01-26,2025-01-26
+142,YT,MYT,Mayotte,262,Africa,Eastern Africa,,,
+143,MX,MEX,Mexico,52,Americas,Central America,UMC,2025-01-26,2025-01-26
+144,FM,FSM,"Micronesia, Fed. Sts.",691,Oceania,Micronesia,LMC,2025-01-26,2025-01-26
+145,MD,MDA,Moldova,373,Europe,Eastern Europe,UMC,2025-01-26,2025-01-26
+146,MC,MCO,Monaco,377,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+147,MN,MNG,Mongolia,976,Asia,Eastern Asia,UMC,2025-01-26,2025-01-26
+148,ME,MNE,Montenegro,382,Europe,Southern Europe,UMC,2025-01-26,2025-01-26
+149,MS,MSR,Montserrat,1,Americas,Caribbean,,,
+150,MA,MAR,Morocco,212,Africa,Northern Africa,LMC,2025-01-26,2025-01-26
+151,MZ,MOZ,Mozambique,258,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+152,MM,MMR,Myanmar,95,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+153,NA,NAM,Namibia,264,Africa,Southern Africa,LMC,2025-08-01,2025-08-01
+154,NR,NRU,Nauru,674,Oceania,Micronesia,HIC,2025-01-26,2025-01-26
+155,NP,NPL,Nepal,977,Asia,Southern Asia,LMC,2025-01-26,2025-01-26
+156,NL,NLD,Netherlands,31,Europe,Western Europe,HIC,2025-01-26,2025-01-26
+157,NC,NCL,New Caledonia,687,Oceania,Melanesia,HIC,2025-01-26,2025-01-26
+158,NZ,NZL,New Zealand,64,Oceania,Australia and New Zealand,HIC,2025-01-26,2025-01-26
+159,NI,NIC,Nicaragua,505,Americas,Central America,LMC,2025-01-26,2025-01-26
+160,NE,NER,Niger,227,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+161,NG,NGA,Nigeria,234,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+162,NU,NIU,Niue,683,Oceania,Polynesia,,,
+163,NF,NFK,Norfolk Island,672,Oceania,Australia and New Zealand,,,
+164,KP,PRK,"Korea, Dem. People's Rep.",850,Asia,Eastern Asia,LIC,2025-01-26,2025-01-26
+165,MP,MNP,Northern Mariana Islands,1,Oceania,Micronesia,HIC,2025-01-26,2025-01-26
+166,NO,NOR,Norway,47,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+167,OM,OMN,Oman,968,Asia,Western Asia,HIC,2025-01-26,2025-01-26
+168,PK,PAK,Pakistan,92,Asia,Southern Asia,LMC,2025-01-26,2025-01-26
+169,PW,PLW,Palau,680,Oceania,Micronesia,HIC,2025-01-26,2025-01-26
+170,PS,PSE,West Bank and Gaza,970,Asia,Western Asia,LMC,2025-01-26,2025-01-26
+171,PA,PAN,Panama,507,Americas,Central America,HIC,2025-01-26,2025-01-26
+172,PG,PNG,Papua New Guinea,675,Oceania,Melanesia,LMC,2025-01-26,2025-01-26
+173,PY,PRY,Paraguay,595,Americas,South America,UMC,2025-01-26,2025-01-26
+174,PE,PER,Peru,51,Americas,South America,UMC,2025-01-26,2025-01-26
+175,PH,PHL,Philippines,63,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+176,PN,PCN,Pitcairn Island,870,Oceania,Polynesia,,,
+177,PL,POL,Poland,48,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+178,PT,PRT,Portugal,351,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+179,PR,PRI,Puerto Rico (US),1,Americas,Caribbean,HIC,2025-08-01,2025-08-01
+180,QA,QAT,Qatar,974,Asia,Western Asia,HIC,2025-01-26,2025-01-26
+181,RE,REU,Reunion,262,Africa,Eastern Africa,,,
+182,RO,ROU,Romania,40,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+183,RU,RUS,Russian Federation,7,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+184,RW,RWA,Rwanda,250,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+185,SH,SHN,Saint Helena,290,Africa,Western Africa,,,
+186,KN,KNA,St. Kitts and Nevis,1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+187,LC,LCA,St. Lucia,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+188,PM,SPM,Saint Pierre and Miquelon,508,Americas,Northern America,,,
+189,VC,VCT,St. Vincent and the Grenadines,1,Americas,Caribbean,UMC,2025-01-26,2025-01-26
+190,BL,BLM,Saint-Barthelemy,590,Americas,Caribbean,,,
+191,MF,MAF,St. Martin (French part),590,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+192,WS,WSM,Samoa,685,Oceania,Polynesia,UMC,2025-08-01,2025-08-01
+193,SM,SMR,San Marino,378,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+194,ST,STP,Sao Tome and Principe,239,Africa,Middle Africa,LMC,2025-01-26,2025-01-26
+195,SA,SAU,Saudi Arabia,966,Asia,Western Asia,HIC,2025-01-26,2025-01-26
+196,SN,SEN,Senegal,221,Africa,Western Africa,LMC,2025-01-26,2025-01-26
+197,RS,SRB,Serbia,381,Europe,Southern Europe,UMC,2025-01-26,2025-01-26
+198,SC,SYC,Seychelles,248,Africa,Eastern Africa,HIC,2025-01-26,2025-01-26
+199,SL,SLE,Sierra Leone,232,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+200,SG,SGP,Singapore,65,Asia,South-Eastern Asia,HIC,2025-01-26,2025-01-26
+201,SX,SXM,Sint Maarten (Dutch part),1721,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+202,SK,SVK,Slovak Republic,421,Europe,Eastern Europe,HIC,2025-01-26,2025-01-26
+203,SI,SVN,Slovenia,386,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+204,SB,SLB,Solomon Islands,677,Oceania,Melanesia,LMC,2025-01-26,2025-01-26
+205,SO,SOM,Federal Republic of Somalia,252,Africa,Eastern Africa,LIC,2025-10-01,2025-10-01
+206,ZA,ZAF,South Africa,27,Africa,Southern Africa,UMC,2025-01-26,2025-01-26
+207,GS,SGS,South Georgia,500,Americas,South America,,,
+208,KR,KOR,"Korea, Rep.",82,Asia,Eastern Asia,HIC,2025-01-26,2025-01-26
+209,SS,SSD,South Sudan,211,Africa,Middle Africa,LIC,2025-01-26,2025-01-26
+210,ES,ESP,Spain,34,Europe,Southern Europe,HIC,2025-01-26,2025-01-26
+211,LK,LKA,Sri Lanka,94,Asia,Southern Asia,LMC,2025-01-26,2025-01-26
+212,SD,SDN,Sudan,249,Africa,Northern Africa,LIC,2025-01-26,2025-01-26
+213,SR,SUR,Suriname,597,Americas,South America,UMC,2025-01-26,2025-01-26
+214,SJ,SJM,Svalbard and Jan Mayen Islands,47,Europe,Northern Europe,,,
+215,SZ,SWZ,Eswatini,268,Africa,Southern Africa,LMC,2025-01-26,2025-01-26
+216,SE,SWE,Sweden,46,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+217,CH,CHE,Switzerland,41,Europe,Western Europe,HIC,2024-12-01,2024-12-01
+218,SY,SYR,Syrian Arab Republic,963,Asia,Western Asia,LIC,2025-01-26,2025-01-26
+219,TW,TWN,Taiwan,886,Asia,Eastern Asia,,,
+220,TJ,TJK,Tajikistan,992,Asia,Central Asia,LMC,2025-01-26,2025-01-26
+221,TZ,TZA,Tanzania,255,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+222,TH,THA,Thailand,66,Asia,South-Eastern Asia,UMC,2025-01-26,2025-01-26
+223,TG,TGO,Togo,228,Africa,Western Africa,LIC,2025-01-26,2025-01-26
+224,TK,TKL,Tokelau,690,Oceania,Polynesia,,,
+225,TO,TON,Tonga,676,Oceania,Polynesia,UMC,2025-01-26,2025-01-26
+226,TT,TTO,Trinidad and Tobago,1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+227,TN,TUN,Tunisia,216,Africa,Northern Africa,LMC,2025-01-26,2025-01-26
+228,TR,TUR,Turkiye,90,Asia,Western Asia,UMC,2025-01-26,2025-01-26
+229,TM,TKM,Turkmenistan,993,Asia,Central Asia,UMC,2025-01-26,2025-01-26
+230,TC,TCA,Turks and Caicos Islands,1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+231,TV,TUV,Tuvalu,688,Oceania,Polynesia,UMC,2025-01-26,2025-01-26
+232,UG,UGA,Uganda,256,Africa,Eastern Africa,LIC,2025-01-26,2025-01-26
+233,UA,UKR,Ukraine,380,Europe,Eastern Europe,UMC,2025-01-26,2025-01-26
+234,AE,ARE,United Arab Emirates,971,Asia,Western Asia,HIC,2024-12-01,2024-12-01
+235,GB,GBR,United Kingdom,44,Europe,Northern Europe,HIC,2025-01-26,2025-01-26
+236,US,USA,United States,1,Americas,Northern America,HIC,2025-01-26,2025-01-26
+237,UM,UMI,United States Minor Outlying Islands,1,Americas,Northern America,,,
+238,UY,URY,Uruguay,598,Americas,South America,HIC,2025-01-26,2025-01-26
+239,UZ,UZB,Uzbekistan,998,Asia,Central Asia,LMC,2025-01-26,2025-01-26
+240,VU,VUT,Vanuatu,678,Oceania,Melanesia,LMC,2025-01-26,2025-01-26
+241,VA,VAT,Vatican City State (Holy See),379,Europe,Southern Europe,,,
+242,VE,VEN,"Venezuela, RB",58,Americas,South America,INX,2025-01-26,2025-01-26
+243,VN,VNM,Viet Nam,84,Asia,South-Eastern Asia,LMC,2025-01-26,2025-01-26
+244,VG,VGB,British Virgin Islands,1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+245,VI,VIR,Virgin Islands (U.S.),1,Americas,Caribbean,HIC,2025-01-26,2025-01-26
+246,WF,WLF,Wallis and Futuna Islands,681,Oceania,Polynesia,,,
+247,EH,ESH,Western Sahara,212,Africa,Northern Africa,,,
+248,YE,YEM,"Yemen, Rep.",967,Asia,Western Asia,LIC,2025-01-26,2025-01-26
+249,ZM,ZMB,Zambia,260,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+250,ZW,ZWE,Zimbabwe,263,Africa,Eastern Africa,LMC,2025-01-26,2025-01-26
+251,JG,,Channel Islands,,,,HIC,2025-01-26,2025-01-26

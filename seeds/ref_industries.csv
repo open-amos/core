@@ -1,0 +1,7 @@
+industry_id,canonical_name,sector_group,naics_code,description,is_active,created_at,updated_at
+ind_96c842e9da8fd2e3,Agriculture,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
+ind_cb7a82c317871051,Consumer,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
+ind_5dd6ec8df562f24a,Financial Services,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
+ind_1e8f514d4ca2a317,Healthcare,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
+ind_35f8b7463f1ec720,Infrastructure,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
+ind_30f7a16c51a35741,Technology,,,,TRUE,2025-10-22 22:48:15,2025-10-22 22:48:15
