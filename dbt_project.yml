@@ -1,0 +1,15 @@
+name: "amos_core"
+version: "0.0.1"
+config-version: 2
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+models:
+  amos_core:
+    marts:
+      +materialized: table
+      +database: "{{ env_var('DBT_CANONICAL_DATABASE', 'CANONICAL') }}"
+      +schema: public
+      +tags: ["marts", "canonical"]
