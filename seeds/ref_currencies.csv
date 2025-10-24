@@ -1,16 +1,16 @@
-currency_code,currency_name,currency_symbol,iso_numeric_code,region,is_active,created_date,last_modified_date
-USD,US Dollar,$,840,NORTH_AMERICA,TRUE,2020-01-01,2024-01-01
-EUR,Euro,€,978,EUROPE,TRUE,2020-01-01,2024-01-01
-GBP,British Pound,£,826,EUROPE,TRUE,2020-01-01,2024-01-01
-JPY,Japanese Yen,¥,392,ASIA,TRUE,2020-01-01,2024-01-01
-CAD,Canadian Dollar,C$,124,NORTH_AMERICA,TRUE,2020-01-01,2024-01-01
-AUD,Australian Dollar,A$,36,OCEANIA,TRUE,2020-01-01,2024-01-01
-CHF,Swiss Franc,Fr,756,EUROPE,TRUE,2020-01-01,2024-01-01
-SGD,Singapore Dollar,S$,702,ASIA_PACIFIC,TRUE,2020-01-01,2024-01-01
-CNY,Chinese Yuan,¥,156,ASIA,TRUE,2020-01-01,2024-01-01
-HKD,Hong Kong Dollar,HK$,344,ASIA,TRUE,2020-01-01,2024-01-01
-INR,Indian Rupee,₹,356,ASIA,TRUE,2020-01-01,2024-01-01
-NOK,Norwegian Krone,kr,578,EUROPE,TRUE,2020-01-01,2024-01-01
-SEK,Swedish Krona,kr,752,EUROPE,TRUE,2020-01-01,2024-01-01
-DKK,Danish Krone,kr,208,EUROPE,TRUE,2020-01-01,2024-01-01
-NZD,New Zealand Dollar,NZ$,554,OCEANIA,TRUE,2020-01-01,2024-01-01
+currency_code,iso_numeric_code,currency_name,currency_symbol,created_date,last_modified_date
+USD,840,US Dollar,$,2020-01-01,2024-01-01
+EUR,978,Euro,€,2020-01-01,2024-01-01
+GBP,826,British Pound,£,2020-01-01,2024-01-01
+JPY,392,Japanese Yen,¥,2020-01-01,2024-01-01
+CAD,124,Canadian Dollar,C$,2020-01-01,2024-01-01
+AUD,36,Australian Dollar,A$,2020-01-01,2024-01-01
+CHF,756,Swiss Franc,Fr,2020-01-01,2024-01-01
+SGD,702,Singapore Dollar,S$,2020-01-01,2024-01-01
+CNY,156,Chinese Yuan,¥,2020-01-01,2024-01-01
+HKD,344,Hong Kong Dollar,HK$,2020-01-01,2024-01-01
+INR,356,Indian Rupee,₹,2020-01-01,2024-01-01
+NOK,578,Norwegian Krone,kr,2020-01-01,2024-01-01
+SEK,752,Swedish Krona,kr,2020-01-01,2024-01-01
+DKK,208,Danish Krone,kr,2020-01-01,2024-01-01
+NZD,554,New Zealand Dollar,NZ$,2020-01-01,2024-01-01
