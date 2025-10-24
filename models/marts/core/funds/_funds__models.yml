@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: dim_funds
+    description: "Canonical fund dimension - master data for all funds across the warehouse"
+    columns:
+      - name: fund_id
+        description: "Unique fund identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Fund name"
+        tests:
+          - not_null
+      
+      - name: type
+        description: "Fund type (e.g., Private Equity, Venture Capital, Credit)"
+      
+      - name: vintage
+        description: "Vintage year of the fund"
+      
+      - name: management_fee
+        description: "Management fee rate as decimal"
+      
+      - name: hurdle
+        description: "Hurdle rate as decimal"
+      
+      - name: carried_interest
+        description: "Carried interest rate as decimal"
+      
+      - name: target_commitment
+        description: "Target commitment amount"
+      
+      - name: incorporated_in
+        description: "Jurisdiction where fund is incorporated"
+      
+      - name: base_currency_code
+        description: "Base currency code for the fund - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: created_at
+        description: "Timestamp when the fund record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the fund record was last updated"
