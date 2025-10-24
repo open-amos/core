@@ -1,0 +1,83 @@
+version: 2
+
+seeds:
+  - name: ref_currencies
+    description: "Currency reference data - canonical dimension for all currency codes used across the warehouse"
+    config:
+      column_types:
+        currency_code: char(3)
+        currency_name: varchar(128)
+        currency_symbol: varchar(10)
+        iso_numeric_code: varchar(10)
+        region: varchar(64)
+        is_active: boolean
+        created_date: date
+        last_modified_date: date
+    columns:
+      - name: currency_code
+        description: "ISO 4217 currency code (3-character)"
+        tests:
+          - unique
+          - not_null
+      - name: currency_name
+        description: "Full name of the currency"
+        tests:
+          - not_null
+      - name: currency_symbol
+        description: "Currency symbol (e.g., $, €, £)"
+      - name: iso_numeric_code
+        description: "ISO 4217 numeric code"
+      - name: region
+        description: "Geographic region where currency is primarily used"
+      - name: is_active
+        description: "Whether the currency is currently active"
+      - name: created_date
+        description: "Date when the currency record was created"
+      - name: last_modified_date
+        description: "Date when the currency record was last modified"
+
+  - name: ref_countries
+    description: "Country reference data - canonical dimension for all countries with ISO codes and regional classifications"
+    config:
+      column_types:
+        id: varchar(10)
+        iso2: char(2)
+        iso3: char(3)
+        name: varchar(128)
+        phone_code: varchar(10)
+        region: varchar(255)
+        sub_region: varchar(255)
+        income_level: varchar(6)
+        created_at: date
+        updated_at: date
+    columns:
+      - name: id
+        description: "Internal numeric identifier for the country"
+      - name: iso2
+        description: "ISO 3166-1 alpha-2 country code (2-character)"
+        tests:
+          - unique
+          - not_null
+      - name: iso3
+        description: "ISO 3166-1 alpha-3 country code (3-character)"
+      - name: name
+        description: "Official country name"
+        tests:
+          - not_null
+      - name: phone_code
+        description: "International dialing code"
+      - name: region
+        description: "Geographic region (e.g., Asia, Europe, Africa)"
+      - name: sub_region
+        description: "Geographic sub-region (e.g., Southern Asia, Western Europe)"
+      - name: income_level
+        description: "World Bank income classification (HIC, UMC, LMC, LIC, INX)"
+        tests:
+          - accepted_values:
+              values: ['HIC', 'UMC', 'LMC', 'LIC', 'INX', '']
+              config:
+                where: "income_level is not null"
+      - name: created_at
+        description: "Timestamp when the country record was created"
+      - name: updated_at
+        description: "Timestamp when the country record was last updated"
