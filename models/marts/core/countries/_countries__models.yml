@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dim_countries
+    description: "Canonical country dimension - reference data for all countries with ISO codes and regional classifications"
+    columns:
+      - name: country_iso2_code
+        description: "ISO 3166-1 alpha-2 country code (2-character) - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: country_iso3_code
+        description: "ISO 3166-1 alpha-3 country code (3-character)"
+      
+      - name: name
+        description: "Official country name"
+        tests:
+          - not_null
+      
+      - name: region
+        description: "Geographic region (e.g., Asia, Europe, Africa, Americas, Oceania)"
+      
+      - name: subregion
+        description: "Geographic sub-region (e.g., Southern Asia, Western Europe, Northern Africa)"
+      
+      - name: income_level
+        description: "World Bank income classification (HIC=High Income, UMC=Upper Middle, LMC=Lower Middle, LIC=Low Income, INX=Not Classified)"
+        tests:
+          - accepted_values:
+              values: ['HIC', 'UMC', 'LMC', 'LIC', 'INX', '']
+              config:
+                where: "income_level is not null"
+      
+      - name: created_at
+        description: "Timestamp when the country record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the country record was last updated"
