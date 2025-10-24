@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: dim_companies
+    description: "Canonical company dimension - master data for all companies across the warehouse"
+    columns:
+      - name: company_id
+        description: "Unique company identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Company name"
+        tests:
+          - not_null
+      
+      - name: website
+        description: "Company website URL"
+      
+      - name: description
+        description: "Company description or business overview"
+      
+      - name: currency_code
+        description: "Base currency code for the company - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: created_at
+        description: "Timestamp when the company record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the company record was last updated"
