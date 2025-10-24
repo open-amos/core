@@ -10,6 +10,6 @@ models:
   amos_core:
     marts:
       +materialized: table
-      +database: "{{ env_var('DBT_CANONICAL_DATABASE', 'CANONICAL') }}"
+      +database: "{{ env_var('DBT_CORE_DATABASE', 'CORE') }}"
       +schema: public
-      +tags: ["marts", "canonical"]
+      +tags: ["marts", "core"]
