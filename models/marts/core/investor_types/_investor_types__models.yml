@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: dim_investor_types
+    description: "Canonical investor type dimension - reference data for all investor type classifications used across the warehouse"
+    columns:
+      - name: investor_type_id
+        description: "Unique investor type identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Investor type name"
+        tests:
+          - not_null
+      
+      - name: description
+        description: "Detailed description of the investor type"
+      
+      - name: kyc_category
+        description: "KYC (Know Your Customer) category classification for regulatory compliance"
+      
+      - name: created_at
+        description: "Timestamp when the investor type record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the investor type record was last updated"
