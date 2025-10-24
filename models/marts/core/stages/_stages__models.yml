@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: dim_stages
+    description: "Canonical stage dimension - pipeline stage definitions from CRM system for opportunity tracking"
+    columns:
+      - name: stage_id
+        description: "Unique stage identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Stage name"
+        tests:
+          - not_null
+      
+      - name: type
+        description: "Pipeline type classification"
+      
+      - name: order
+        description: "Stage order in pipeline sequence"
+      
+      - name: created_at
+        description: "Timestamp when the stage record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the stage record was last updated"
