@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_currencies
+    description: "Canonical currency dimension - reference data for all currency codes used across the warehouse"
+    columns:
+      - name: currency_code
+        description: "ISO 4217 currency code (3-character) - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Full name of the currency"
+        tests:
+          - not_null
+      
+      - name: symbol
+        description: "Currency symbol (e.g., $, €, £)"
+      
+      - name: created_at
+        description: "Timestamp when the currency record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the currency record was last updated"
