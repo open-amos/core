@@ -33,3 +33,31 @@ models:
       
       - name: updated_at
         description: "Timestamp when the company record was last updated"
+
+  - name: br_company_industries
+    description: "Bridge table for company to industry many-to-many relationships"
+    columns:
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: industry_id
+        description: "Industry identifier - Foreign Key to dim_industries"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_industries')
+              field: industry_id
+      
+      - name: primary_flag
+        description: "Indicates if this is the primary industry for the company"
+      
+      - name: created_at
+        description: "Timestamp when the relationship was created"
+      
+      - name: updated_at
+        description: "Timestamp when the relationship was last updated"
