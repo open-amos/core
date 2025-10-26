@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: dim_facilities
+    description: "Canonical facility dimension - loan facilities for debt financing"
+    columns:
+      - name: facility_id
+        description: "Unique facility identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: fund_id
+        description: "Fund providing the facility - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: borrower_company_id
+        description: "Company borrowing from the facility - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: facility_type
+        description: "Type of facility - Enum: TERM_LOAN_B, UNITRANCHE, REVOLVER, DELAYED_DRAWDOWN, MEZZANINE, RCF, BRIDGE"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['TERM_LOAN_B', 'UNITRANCHE', 'REVOLVER', 'DELAYED_DRAWDOWN', 'MEZZANINE', 'RCF', 'BRIDGE']
+      
+      - name: agent_counterparty_id
+        description: "Agent counterparty for the facility - Foreign Key to dim_counterparties"
+        tests:
+          - relationships:
+              to: ref('dim_counterparties')
+              field: counterparty_id
+      
+      - name: agreement_date
+        description: "Date when the facility agreement was signed"
+        tests:
+          - not_null
+      
+      - name: effective_date
+        description: "Date when the facility became effective"
+      
+      - name: maturity_date
+        description: "Date when the facility matures"
+      
+      - name: currency_code
+        description: "Currency code for the facility - Foreign Key to dim_currencies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: total_commitment
+        description: "Total commitment amount for the facility"
+      
+      - name: purpose
+        description: "Purpose of the facility"
+      
+      - name: created_at
+        description: "Timestamp when the facility record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the facility record was last updated"

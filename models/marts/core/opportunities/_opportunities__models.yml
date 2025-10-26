@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: dim_opportunities
+    description: "Canonical opportunity dimension - sales and deal pipeline opportunities"
+    columns:
+      - name: opportunity_id
+        description: "Unique opportunity identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: fund_id
+        description: "Fund associated with the opportunity - Foreign Key to dim_funds"
+        tests:
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: name
+        description: "Opportunity name"
+        tests:
+          - not_null
+      
+      - name: stage_id
+        description: "Current stage of the opportunity - Foreign Key to dim_stages"
+        tests:
+          - relationships:
+              to: ref('dim_stages')
+              field: stage_id
+      
+      - name: company_id
+        description: "Company associated with the opportunity - Foreign Key to dim_companies"
+        tests:
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: responsible
+        description: "Person responsible for the opportunity"
+      
+      - name: amount
+        description: "Expected amount for the opportunity"
+      
+      - name: source
+        description: "Source of the opportunity"
+      
+      - name: close_date
+        description: "Expected close date for the opportunity"
+      
+      - name: created_at
+        description: "Timestamp when the opportunity record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the opportunity record was last updated"

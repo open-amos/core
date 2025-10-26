@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: dim_instruments
+    description: "Canonical instrument dimension - investment instruments held by funds in portfolio companies"
+    columns:
+      - name: instrument_id
+        description: "Unique instrument identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: fund_id
+        description: "Fund that holds the instrument - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: company_id
+        description: "Company in which the instrument is held - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: instrument_type
+        description: "Type of instrument - Enum: EQUITY, LOAN, CONVERTIBLE, WARRANT, FUND_INTEREST"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['EQUITY', 'LOAN', 'CONVERTIBLE', 'WARRANT', 'FUND_INTEREST']
+      
+      - name: currency_code
+        description: "Currency code for the instrument - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: inception_date
+        description: "Date when the instrument was created or acquired"
+      
+      - name: termination_date
+        description: "Date when the instrument was terminated or exited"
+      
+      - name: description
+        description: "Description of the instrument"
+      
+      - name: created_at
+        description: "Timestamp when the instrument record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the instrument record was last updated"

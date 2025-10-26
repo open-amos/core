@@ -1,0 +1,114 @@
+version: 2
+
+models:
+  - name: dim_loans
+    description: "Canonical loan dimension - individual loan instruments within facilities"
+    columns:
+      - name: loan_id
+        description: "Unique loan identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: instrument_id
+        description: "Associated instrument - Foreign Key to dim_instruments (unique)"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: facility_id
+        description: "Parent facility - Foreign Key to dim_facilities"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_facilities')
+              field: facility_id
+      
+      - name: loan_type
+        description: "Type of loan - Enum: TERM, REVOLVER, DDTL, BRIDGE, MEZZ"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['TERM', 'REVOLVER', 'DDTL', 'BRIDGE', 'MEZZ']
+      
+      - name: tranche_label
+        description: "Tranche label for the loan"
+      
+      - name: commitment_amount
+        description: "Commitment amount for the loan"
+      
+      - name: currency_code
+        description: "Currency code for the loan - Foreign Key to dim_currencies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: start_date
+        description: "Start date of the loan"
+        tests:
+          - not_null
+      
+      - name: maturity_date
+        description: "Maturity date of the loan"
+        tests:
+          - not_null
+      
+      - name: interest_index
+        description: "Interest rate index - Enum: SOFR, EURIBOR, SONIA, FED_FUNDS, FIXED"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SOFR', 'EURIBOR', 'SONIA', 'FED_FUNDS', 'FIXED']
+      
+      - name: index_tenor_days
+        description: "Tenor in days for the interest index"
+      
+      - name: fixed_rate_pct
+        description: "Fixed interest rate percentage"
+      
+      - name: spread_bps
+        description: "Spread in basis points over the index"
+        tests:
+          - not_null
+      
+      - name: floor_pct
+        description: "Interest rate floor percentage"
+      
+      - name: day_count
+        description: "Day count convention - Enum: 30E_360, ACT_360, ACT_365, ACT_ACT"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['30E_360', 'ACT_360', 'ACT_365', 'ACT_ACT']
+      
+      - name: pay_freq_months
+        description: "Payment frequency in months"
+        tests:
+          - not_null
+      
+      - name: amortization_type
+        description: "Amortization type - Enum: BULLET, STRAIGHT_LINE, CUSTOM_SCHEDULE"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['BULLET', 'STRAIGHT_LINE', 'CUSTOM_SCHEDULE']
+      
+      - name: security_rank
+        description: "Security rank - Enum: SENIOR_SECURED, SENIOR_UNSECURED, SECOND_LIEN, MEZZANINE, PIK"
+        tests:
+          - accepted_values:
+              values: ['SENIOR_SECURED', 'SENIOR_UNSECURED', 'SECOND_LIEN', 'MEZZANINE', 'PIK']
+      
+      - name: status
+        description: "Current status of the loan"
+      
+      - name: created_at
+        description: "Timestamp when the loan record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the loan record was last updated"

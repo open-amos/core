@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: dim_commitments
+    description: "Canonical commitment dimension - investor commitments to funds"
+    columns:
+      - name: commitment_id
+        description: "Unique commitment identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: fund_id
+        description: "Fund to which the commitment is made - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: investor_id
+        description: "Investor making the commitment - Foreign Key to dim_investors"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_investors')
+              field: investor_id
+      
+      - name: created_at
+        description: "Timestamp when the commitment record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the commitment record was last updated"

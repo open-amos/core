@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: dim_shareholders
+    description: "Canonical shareholder dimension - company shareholders and their holdings"
+    columns:
+      - name: shareholder_id
+        description: "Unique shareholder identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: company_id
+        description: "Company in which shares are held - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: name
+        description: "Shareholder name"
+        tests:
+          - not_null
+      
+      - name: type
+        description: "Type of shareholder (e.g., FUND, INDIVIDUAL, INSTITUTION)"
+      
+      - name: number_of_shares
+        description: "Number of shares held"
+      
+      - name: share_class_id
+        description: "Share class held - Foreign Key to dim_share_classes"
+        tests:
+          - relationships:
+              to: ref('dim_share_classes')
+              field: share_class_id
+      
+      - name: affiliated_entity
+        description: "Whether the shareholder is an affiliated entity"
+      
+      - name: created_at
+        description: "Timestamp when the shareholder record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the shareholder record was last updated"
