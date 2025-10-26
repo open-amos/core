@@ -213,3 +213,125 @@ models:
       
       - name: updated_at
         description: "Timestamp when the snapshot record was last updated"
+
+  - name: fct_loan_cashflows
+    description: "Fact table for loan-level cash movements including draws, repayments, interest, and fees"
+    columns:
+      - name: loan_cashflow_id
+        description: "Unique loan cashflow identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: loan_id
+        description: "Loan identifier - Foreign Key to dim_loans"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_loans')
+              field: loan_id
+      
+      - name: loan_cashflow_type
+        description: "Type of cashflow - Enum: DRAW, PRINCIPAL_REPAYMENT, INTEREST_PAYMENT, FEE_PAYMENT, PREPAYMENT_PENALTY, AMENDMENT_FEE, COMMITMENT_FEE"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DRAW', 'PRINCIPAL_REPAYMENT', 'INTEREST_PAYMENT', 'FEE_PAYMENT', 'PREPAYMENT_PENALTY', 'AMENDMENT_FEE', 'COMMITMENT_FEE']
+      
+      - name: date
+        description: "Date of the cashflow"
+        tests:
+          - not_null
+      
+      - name: amount
+        description: "Amount of the cashflow in original currency"
+        tests:
+          - not_null
+      
+      - name: currency_code
+        description: "Currency code for the cashflow - Foreign Key to dim_currencies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion"
+      
+      - name: amount_converted
+        description: "Amount converted to fund base currency"
+      
+      - name: interest_period_id
+        description: "Related interest period identifier - Foreign Key to fct_loan_interest_periods"
+        tests:
+          - relationships:
+              to: ref('fct_loan_interest_periods')
+              field: loan_interest_period_id
+      
+      - name: transaction_id
+        description: "Related transaction identifier - Foreign Key to fct_transactions"
+        tests:
+          - relationships:
+              to: ref('fct_transactions')
+              field: transaction_id
+      
+      - name: reference
+        description: "Reference or description of the cashflow"
+      
+      - name: created_at
+        description: "Timestamp when the cashflow record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the cashflow record was last updated"
+
+  - name: fct_loan_interest_periods
+    description: "Fact table for loan interest accrual periods tracking interest calculations and payments"
+    columns:
+      - name: loan_interest_period_id
+        description: "Unique loan interest period identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: loan_id
+        description: "Loan identifier - Foreign Key to dim_loans"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_loans')
+              field: loan_id
+      
+      - name: period_start
+        description: "Start date of the interest period"
+        tests:
+          - not_null
+      
+      - name: period_end
+        description: "End date of the interest period"
+        tests:
+          - not_null
+      
+      - name: index_rate_pct
+        description: "Index rate percentage for the period"
+      
+      - name: margin_pct
+        description: "Margin percentage for the period"
+      
+      - name: accrual_days
+        description: "Number of days in the accrual period"
+      
+      - name: expected_interest_amount
+        description: "Expected interest amount for the period"
+      
+      - name: payment_due_date
+        description: "Date when interest payment is due"
+      
+      - name: actual_interest_amount
+        description: "Actual interest amount paid"
+      
+      - name: created_at
+        description: "Timestamp when the interest period record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the interest period record was last updated"

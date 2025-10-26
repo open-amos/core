@@ -221,3 +221,36 @@ models:
       
       - name: updated_at
         description: "Timestamp when the financial record was last updated"
+
+  - name: fct_company_dividend_forecasts
+    description: "Fact table for projected dividend payments from portfolio companies"
+    columns:
+      - name: company_dividend_forecast_id
+        description: "Unique company dividend forecast identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: date
+        description: "Forecasted date of the dividend payment"
+        tests:
+          - not_null
+      
+      - name: amount
+        description: "Forecasted dividend amount"
+        tests:
+          - not_null
+      
+      - name: created_at
+        description: "Timestamp when the forecast record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the forecast record was last updated"
