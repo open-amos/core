@@ -112,3 +112,104 @@ models:
       
       - name: updated_at
         description: "Timestamp when the loan record was last updated"
+
+  - name: fct_loan_snapshots
+    description: "Fact table for loan position snapshots over time"
+    columns:
+      - name: loan_snapshot_id
+        description: "Unique loan snapshot identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: loan_id
+        description: "Loan identifier - Foreign Key to dim_loans"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_loans')
+              field: loan_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: principal_outstanding
+        description: "Outstanding principal amount"
+      
+      - name: undrawn_commitment
+        description: "Undrawn commitment amount"
+      
+      - name: accrued_interest
+        description: "Accrued interest amount"
+      
+      - name: accrued_fees
+        description: "Accrued fees amount"
+      
+      - name: amortized_cost
+        description: "Amortized cost of the loan"
+      
+      - name: fair_value
+        description: "Fair value of the loan"
+      
+      - name: expected_loss
+        description: "Expected loss amount"
+      
+      - name: status
+        description: "Current status of the loan"
+      
+      - name: currency_code
+        description: "Currency code for the loan - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion"
+      
+      - name: principal_outstanding_converted
+        description: "Principal outstanding converted to fund base currency"
+      
+      - name: undrawn_commitment_converted
+        description: "Undrawn commitment converted to fund base currency"
+      
+      - name: accrued_interest_converted
+        description: "Accrued interest converted to fund base currency"
+      
+      - name: accrued_fees_converted
+        description: "Accrued fees converted to fund base currency"
+      
+      - name: amortized_cost_converted
+        description: "Amortized cost converted to fund base currency"
+      
+      - name: fair_value_converted
+        description: "Fair value converted to fund base currency"
+      
+      - name: source_file_ref
+        description: "Reference to source file or system"
+      
+      - name: created_at
+        description: "Timestamp when the snapshot record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the snapshot record was last updated"

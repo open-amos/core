@@ -54,3 +54,110 @@ models:
       
       - name: updated_at
         description: "Timestamp when the instrument record was last updated"
+
+  - name: fct_instrument_snapshots
+    description: "Fact table for instrument valuations and performance metrics over time"
+    columns:
+      - name: instrument_snapshot_id
+        description: "Unique instrument snapshot identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: instrument_id
+        description: "Instrument identifier - Foreign Key to dim_instruments"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: currency_code
+        description: "Currency code for the valuation - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion"
+      
+      - name: fair_value
+        description: "Fair value of the instrument"
+      
+      - name: amortized_cost
+        description: "Amortized cost of the instrument"
+      
+      - name: principal_outstanding
+        description: "Outstanding principal (for debt instruments)"
+      
+      - name: undrawn_commitment
+        description: "Undrawn commitment amount"
+      
+      - name: accrued_income
+        description: "Accrued income"
+      
+      - name: accrued_fees
+        description: "Accrued fees"
+      
+      - name: fair_value_converted
+        description: "Fair value converted to fund base currency"
+      
+      - name: amortized_cost_converted
+        description: "Amortized cost converted to fund base currency"
+      
+      - name: principal_outstanding_converted
+        description: "Principal outstanding converted to fund base currency"
+      
+      - name: undrawn_commitment_converted
+        description: "Undrawn commitment converted to fund base currency"
+      
+      - name: accrued_income_converted
+        description: "Accrued income converted to fund base currency"
+      
+      - name: accrued_fees_converted
+        description: "Accrued fees converted to fund base currency"
+      
+      - name: equity_stake_pct
+        description: "Equity ownership percentage (for equity instruments)"
+      
+      - name: equity_dividends_cum
+        description: "Cumulative dividends received (for equity instruments)"
+      
+      - name: equity_exit_proceeds_actual
+        description: "Actual exit proceeds (for exited equity instruments)"
+      
+      - name: equity_exit_proceeds_forecast
+        description: "Forecasted exit proceeds (for equity instruments)"
+      
+      - name: snapshot_source_file_ref
+        description: "Reference to source file or system"
+      
+      - name: created_at
+        description: "Timestamp when the snapshot record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the snapshot record was last updated"

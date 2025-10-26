@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: fct_transactions
+    description: "Fact table for all fund transactions including drawdowns, distributions, expenses, fees, and investment transactions"
+    columns:
+      - name: transaction_id
+        description: "Unique transaction identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: transaction_type
+        description: "Type of transaction"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DRAWDOWN', 'DISTRIBUTION', 'DIVIDEND', 'INVESTMENT_TRANSACTION', 'EXPENSE', 'MANAGEMENT_FEE', 'LOAN_RECEIVED', 'LOAN_DRAW', 'LOAN_PRINCIPAL_REPAYMENT', 'LOAN_INTEREST_RECEIPT', 'LOAN_FEE_RECEIPT']
+      
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tests:
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: investor_id
+        description: "Investor identifier - Foreign Key to dim_investors"
+        tests:
+          - relationships:
+              to: ref('dim_investors')
+              field: investor_id
+      
+      - name: instrument_id
+        description: "Instrument identifier - Foreign Key to dim_instruments"
+        tests:
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: investment_round_id
+        description: "Investment round identifier - Foreign Key to dim_investment_rounds"
+        tests:
+          - relationships:
+              to: ref('dim_investment_rounds')
+              field: investment_round_id
+      
+      - name: facility_id
+        description: "Facility identifier - Foreign Key to dim_facilities"
+        tests:
+          - relationships:
+              to: ref('dim_facilities')
+              field: facility_id
+      
+      - name: name
+        description: "Transaction name or title"
+      
+      - name: description
+        description: "Transaction description or notes"
+      
+      - name: amount
+        description: "Transaction amount in original currency"
+        tests:
+          - not_null
+      
+      - name: currency_code
+        description: "Currency code for the transaction amount - Foreign Key to dim_currencies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion"
+      
+      - name: amount_converted
+        description: "Transaction amount converted to fund base currency"
+      
+      - name: fx_rate_as_of
+        description: "Date of the FX rate used for conversion"
+      
+      - name: fx_rate_source
+        description: "Source of the FX rate"
+      
+      - name: date
+        description: "Transaction date"
+        tests:
+          - not_null
+      
+      - name: source
+        description: "Source system for the transaction"
+      
+      - name: reference
+        description: "External reference or identifier"
+      
+      - name: created_at
+        description: "Timestamp when the transaction record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the transaction record was last updated"

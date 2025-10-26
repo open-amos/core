@@ -31,3 +31,92 @@ models:
       
       - name: updated_at
         description: "Timestamp when the commitment record was last updated"
+
+  - name: fct_commitment_snapshots
+    description: "Fact table for investor commitment snapshots over time"
+    columns:
+      - name: commitment_snapshot_id
+        description: "Unique commitment snapshot identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: commitment_id
+        description: "Commitment identifier - Foreign Key to dim_commitments"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_commitments')
+              field: commitment_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: total_commitment
+        description: "Total commitment amount"
+      
+      - name: total_drawdowns
+        description: "Total drawdowns to date"
+      
+      - name: total_distributions
+        description: "Total distributions to date"
+      
+      - name: created_at
+        description: "Timestamp when the snapshot record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the snapshot record was last updated"
+
+  - name: fct_commitment_records
+    description: "Fact table for commitment change history"
+    columns:
+      - name: commitment_record_id
+        description: "Unique commitment record identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: commitment_id
+        description: "Commitment identifier - Foreign Key to dim_commitments"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_commitments')
+              field: commitment_id
+      
+      - name: date_from
+        description: "Effective date of the commitment change"
+        tests:
+          - not_null
+      
+      - name: amount
+        description: "Commitment amount"
+      
+      - name: status
+        description: "Status of the commitment"
+      
+      - name: created_at
+        description: "Timestamp when the record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the record was last updated"

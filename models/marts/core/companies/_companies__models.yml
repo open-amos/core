@@ -61,3 +61,163 @@ models:
       
       - name: updated_at
         description: "Timestamp when the relationship was last updated"
+
+  - name: fct_company_valuations
+    description: "Fact table for company valuations over time"
+    columns:
+      - name: company_valuation_id
+        description: "Unique company valuation identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: amount
+        description: "Valuation amount"
+      
+      - name: valuation_type
+        description: "Type of valuation"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ACTUAL', 'FORECAST']
+      
+      - name: created_at
+        description: "Timestamp when the valuation record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the valuation record was last updated"
+
+  - name: fct_company_financials
+    description: "Fact table for company financial statements over time"
+    columns:
+      - name: company_performance_snapshot_id
+        description: "Unique company financial snapshot identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS, AUDITED, MANAGEMENT)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: currency_code
+        description: "Currency code for the financial data - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: revenue
+        description: "Total revenue"
+      
+      - name: cost_of_goods_sold
+        description: "Cost of goods sold"
+      
+      - name: gross_profit
+        description: "Gross profit"
+      
+      - name: operating_expenses
+        description: "Operating expenses"
+      
+      - name: ebitda
+        description: "Earnings before interest, taxes, depreciation, and amortization"
+      
+      - name: depreciation_amortization
+        description: "Depreciation and amortization"
+      
+      - name: ebit
+        description: "Earnings before interest and taxes"
+      
+      - name: net_income
+        description: "Net income"
+      
+      - name: cash
+        description: "Cash and cash equivalents"
+      
+      - name: total_assets
+        description: "Total assets"
+      
+      - name: total_liabilities
+        description: "Total liabilities"
+      
+      - name: equity
+        description: "Total equity"
+      
+      - name: operating_cash_flow
+        description: "Operating cash flow"
+      
+      - name: investing_cash_flow
+        description: "Investing cash flow"
+      
+      - name: financing_cash_flow
+        description: "Financing cash flow"
+      
+      - name: source_system
+        description: "Source system for the financial data"
+      
+      - name: source_file_ref
+        description: "Reference to source file or system"
+      
+      - name: created_at
+        description: "Timestamp when the financial record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the financial record was last updated"

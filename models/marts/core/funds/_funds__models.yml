@@ -48,3 +48,88 @@ models:
       
       - name: updated_at
         description: "Timestamp when the fund record was last updated"
+
+  - name: fct_fund_snapshots
+    description: "Fact table for fund performance snapshots over time"
+    columns:
+      - name: fund_snapshot_id
+        description: "Unique fund snapshot identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: period_start_date
+        description: "Start date of the reporting period"
+      
+      - name: period_end_date
+        description: "End date of the reporting period"
+        tests:
+          - not_null
+      
+      - name: frequency
+        description: "Reporting frequency (e.g., QUARTERLY, ANNUAL)"
+      
+      - name: reporting_basis
+        description: "Reporting basis (e.g., GAAP, IFRS)"
+        tests:
+          - not_null
+      
+      - name: snapshot_source
+        description: "Source of the snapshot data"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ADMIN', 'INTERNAL']
+      
+      - name: committed_capital
+        description: "Total committed capital"
+      
+      - name: called_capital
+        description: "Total called capital"
+      
+      - name: dpi
+        description: "Distributions to Paid-In capital ratio"
+      
+      - name: rvpi
+        description: "Residual Value to Paid-In capital ratio"
+      
+      - name: expected_coc
+        description: "Expected cash-on-cash return"
+      
+      - name: cash_amount
+        description: "Cash amount held by the fund"
+      
+      - name: total_distributions
+        description: "Total distributions made"
+      
+      - name: total_expenses
+        description: "Total expenses incurred"
+      
+      - name: total_management_fees
+        description: "Total management fees paid"
+      
+      - name: total_loans_received
+        description: "Total loans received by the fund"
+      
+      - name: principal_outstanding
+        description: "Outstanding principal on loans"
+      
+      - name: undrawn_commitment
+        description: "Undrawn commitment amount"
+      
+      - name: total_interest_income
+        description: "Total interest income earned"
+      
+      - name: created_at
+        description: "Timestamp when the snapshot record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the snapshot record was last updated"
