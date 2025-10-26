@@ -53,3 +53,62 @@ models:
       
       - name: updated_at
         description: "Timestamp when the opportunity record was last updated"
+
+  - name: br_opportunity_countries
+    description: "Bridge table for opportunity to country relationships"
+    columns:
+      - name: opportunity_id
+        description: "Opportunity identifier - Foreign Key to dim_opportunities"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_opportunities')
+              field: opportunity_id
+      
+      - name: country_code
+        description: "Country code - Foreign Key to dim_countries"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_countries')
+              field: country_iso2_code
+      
+      - name: primary_flag
+        description: "Indicates if this is the primary country for the opportunity"
+      
+      - name: allocation_pct
+        description: "Percentage allocation to this country"
+      
+      - name: role
+        description: "Role of the country (e.g., OPERATING, DOMICILE)"
+      
+      - name: created_at
+        description: "Timestamp when the relationship was created"
+      
+      - name: updated_at
+        description: "Timestamp when the relationship was last updated"
+
+  - name: br_opportunity_industries
+    description: "Bridge table for opportunity to industry relationships"
+    columns:
+      - name: opportunity_id
+        description: "Opportunity identifier - Foreign Key to dim_opportunities"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_opportunities')
+              field: opportunity_id
+      
+      - name: industry_id
+        description: "Industry identifier - Foreign Key to dim_industries"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_industries')
+              field: industry_id
+      
+      - name: created_at
+        description: "Timestamp when the relationship was created"
+      
+      - name: updated_at
+        description: "Timestamp when the relationship was last updated"

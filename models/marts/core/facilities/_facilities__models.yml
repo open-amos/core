@@ -70,3 +70,49 @@ models:
       
       - name: updated_at
         description: "Timestamp when the facility record was last updated"
+
+  - name: br_facility_lenders
+    description: "Bridge table for facility syndicate participants - links facilities to lenders (counterparties or funds)"
+    columns:
+      - name: facility_id
+        description: "Facility identifier - Foreign Key to dim_facilities"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_facilities')
+              field: facility_id
+      
+      - name: counterparty_id
+        description: "Counterparty lender identifier - Foreign Key to dim_counterparties (XOR with fund_id)"
+        tests:
+          - relationships:
+              to: ref('dim_counterparties')
+              field: counterparty_id
+      
+      - name: fund_id
+        description: "Fund lender identifier - Foreign Key to dim_funds (XOR with counterparty_id)"
+        tests:
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: syndicate_role
+        description: "Role in the syndicate - Enum: AGENT, ARRANGER, LENDER, CO_LENDER, ADMIN_AGENT"
+        tests:
+          - accepted_values:
+              values: ['AGENT', 'ARRANGER', 'LENDER', 'CO_LENDER', 'ADMIN_AGENT']
+      
+      - name: commitment_amount
+        description: "Commitment amount from this lender"
+      
+      - name: allocation_pct
+        description: "Percentage allocation of the facility"
+      
+      - name: primary_flag
+        description: "Indicates if this is the primary lender"
+      
+      - name: created_at
+        description: "Timestamp when the relationship was created"
+      
+      - name: updated_at
+        description: "Timestamp when the relationship was last updated"
