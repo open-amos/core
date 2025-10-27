@@ -43,8 +43,8 @@ dbt build
 
 ## Related Projects
 
-- **[AMOS Starter](../amos_runner/README.md)** – Orchestrator and entry point
-- **[AMOS Source Example](../amos_source_example/README.md)** – Source integration patterns and example data
+- **[AMOS Starter](../starter)** – Orchestrator and entry point
+- **[AMOS Source Example](../source-example)** – Source integration patterns and example data
 
 ### Docs
 
