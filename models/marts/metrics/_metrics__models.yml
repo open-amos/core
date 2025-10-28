@@ -1,0 +1,599 @@
+version: 2
+
+models:
+  - name: mrt_exposure_by_country
+    description: |
+      BI-ready metrics model combining deployed capital from portfolio positions with pipeline value 
+      from CRM opportunities to show total exposure by country. This model demonstrates cross-system 
+      integration by unifying data from Portfolio Management and CRM systems.
+      
+      **Grain**: One row per country
+      
+      **Source Systems**: Portfolio Management (PM), CRM
+      
+      **Use Cases**:
+      - Geographic concentration risk analysis
+      - Country exposure bar charts
+      - Regional allocation pie charts
+      - Pipeline vs deployed capital comparison
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        country_name,
+        region,
+        deployed_capital_usd,
+        pipeline_value_usd,
+        total_exposure_usd
+      FROM mrt_exposure_by_country
+      ORDER BY total_exposure_usd DESC
+      LIMIT 10;
+      ```
+    columns:
+      - name: country_code
+        description: "ISO 3166-1 alpha-2 country code - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: country_name
+        description: "Human-readable country name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: region
+        description: "Geographic region for grouping (e.g., North America, Europe, Asia Pacific)"
+      
+      - name: deployed_capital_usd
+        description: "Total deployed capital from current instrument positions, converted to USD"
+        tests:
+          - not_null
+      
+      - name: pipeline_value_usd
+        description: "Total pipeline value from active CRM opportunities, converted to USD"
+        tests:
+          - not_null
+      
+      - name: total_exposure_usd
+        description: "Sum of deployed capital and pipeline value"
+        tests:
+          - not_null
+      
+      - name: deployed_pct
+        description: "Deployed capital as percentage of total exposure"
+      
+      - name: pipeline_pct
+        description: "Pipeline value as percentage of total exposure"
+      
+      - name: source_systems
+        description: "Comma-separated list of contributing source systems (e.g., 'PM, CRM')"
+        tests:
+          - not_null
+      
+      - name: as_of_date
+        description: "Date of the latest snapshot used for deployed capital calculations"
+        tests:
+          - not_null
+
+  - name: mrt_exposure_by_industry
+    description: |
+      BI-ready metrics model combining deployed capital from portfolio positions with pipeline value 
+      from CRM opportunities to show total exposure by industry. Demonstrates sector diversification 
+      and concentration across the portfolio.
+      
+      **Grain**: One row per industry
+      
+      **Source Systems**: Portfolio Management (PM), CRM
+      
+      **Use Cases**:
+      - Sector concentration analysis
+      - Industry exposure bar charts
+      - Sector allocation pie charts
+      - Industry hierarchy drill-down (sector → subsector)
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        sector,
+        industry_name,
+        deployed_capital_usd,
+        pipeline_value_usd,
+        total_exposure_usd
+      FROM mrt_exposure_by_industry
+      ORDER BY total_exposure_usd DESC;
+      ```
+    columns:
+      - name: industry_id
+        description: "Unique industry identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: industry_name
+        description: "Human-readable industry name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: sector
+        description: "Top-level sector classification for grouping"
+      
+      - name: subsector
+        description: "Second-level subsector classification for drill-down"
+      
+      - name: deployed_capital_usd
+        description: "Total deployed capital from current instrument positions, converted to USD"
+        tests:
+          - not_null
+      
+      - name: pipeline_value_usd
+        description: "Total pipeline value from active CRM opportunities, converted to USD"
+        tests:
+          - not_null
+      
+      - name: total_exposure_usd
+        description: "Sum of deployed capital and pipeline value"
+        tests:
+          - not_null
+      
+      - name: deployed_pct
+        description: "Deployed capital as percentage of total exposure"
+      
+      - name: pipeline_pct
+        description: "Pipeline value as percentage of total exposure"
+      
+      - name: source_systems
+        description: "Comma-separated list of contributing source systems (e.g., 'PM, CRM')"
+        tests:
+          - not_null
+      
+      - name: as_of_date
+        description: "Date of the latest snapshot used for deployed capital calculations"
+        tests:
+          - not_null
+
+  - name: mrt_fund_performance_latest
+    description: |
+      BI-ready metrics model providing a single-row-per-fund snapshot of key performance indicators.
+      Combines data from fund administration (commitments, capital calls, distributions) with 
+      portfolio system (current NAV) to calculate standard private markets performance metrics.
+      
+      **Grain**: One row per fund (latest snapshot date)
+      
+      **Source Systems**: Fund Administration (ADMIN), Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Fund performance scorecards
+      - DPI and TVPI comparison charts
+      - Fund vintage analysis
+      - Commitment vs deployment tracking
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        fund_name,
+        vintage,
+        total_committed_capital,
+        total_called_capital,
+        current_nav,
+        dpi,
+        tvpi
+      FROM mrt_fund_performance_latest
+      ORDER BY tvpi DESC;
+      ```
+    columns:
+      - name: fund_id
+        description: "Unique fund identifier - Primary Key"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: fund_type
+        description: "Fund type (e.g., Private Equity, Venture Capital, Credit)"
+      
+      - name: vintage
+        description: "Vintage year of the fund"
+      
+      - name: base_currency_code
+        description: "Base currency code for the fund"
+        tests:
+          - not_null
+      
+      - name: as_of_date
+        description: "Date of the latest snapshot"
+        tests:
+          - not_null
+      
+      - name: total_committed_capital
+        description: "Total committed capital from investor commitments"
+        tests:
+          - not_null
+      
+      - name: total_called_capital
+        description: "Total called capital from capital call transactions"
+        tests:
+          - not_null
+      
+      - name: total_distributed_capital
+        description: "Total distributed capital from distribution transactions"
+        tests:
+          - not_null
+      
+      - name: current_nav
+        description: "Current Net Asset Value from latest instrument valuations"
+        tests:
+          - not_null
+      
+      - name: dpi
+        description: "Distributions to Paid-In capital ratio (total_distributed_capital / total_called_capital)"
+      
+      - name: tvpi
+        description: "Total Value to Paid-In capital ratio ((current_nav + total_distributed_capital) / total_called_capital)"
+      
+      - name: unrealized_value
+        description: "Unrealized value (current NAV)"
+      
+      - name: realized_value
+        description: "Realized value (total distributions)"
+      
+      - name: remaining_commitment
+        description: "Remaining commitment (total_committed_capital - total_called_capital)"
+      
+      - name: source_systems
+        description: "Comma-separated list of contributing source systems (e.g., 'ADMIN, PM')"
+        tests:
+          - not_null
+
+  - name: mrt_pipeline_by_stage
+    description: |
+      BI-ready metrics model aggregating CRM opportunities by deal stage to show pipeline health 
+      and forecast future deployment. Enables funnel analysis and deal velocity tracking.
+      
+      **Grain**: One row per fund per stage
+      
+      **Source Systems**: CRM
+      
+      **Use Cases**:
+      - Pipeline funnel charts
+      - Deal stage progression analysis
+      - Average deal size by stage
+      - Deal aging and velocity metrics
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        fund_name,
+        stage_name,
+        deal_count,
+        total_amount_usd,
+        avg_deal_size_usd,
+        oldest_deal_days
+      FROM mrt_pipeline_by_stage
+      ORDER BY fund_name, stage_order;
+      ```
+    columns:
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: stage_id
+        description: "Stage identifier - Foreign Key to dim_stages"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_stages')
+              field: stage_id
+      
+      - name: stage_name
+        description: "Stage name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: stage_order
+        description: "Numeric ordering for proper stage sequencing in visualizations"
+        tests:
+          - not_null
+      
+      - name: deal_count
+        description: "Count of active opportunities in this stage"
+        tests:
+          - not_null
+      
+      - name: total_amount_usd
+        description: "Sum of opportunity amounts in USD"
+        tests:
+          - not_null
+      
+      - name: avg_deal_size_usd
+        description: "Average opportunity amount in USD"
+      
+      - name: oldest_deal_days
+        description: "Days since the oldest opportunity in this stage was created"
+      
+      - name: newest_deal_days
+        description: "Days since the newest opportunity in this stage was created"
+      
+      - name: source_system
+        description: "Source system indicator (CRM)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CRM']
+      
+      - name: as_of_date
+        description: "Current date when metrics were calculated"
+        tests:
+          - not_null
+
+  - name: mrt_company_financials_trend
+    description: |
+      BI-ready metrics model providing time-series financial metrics for portfolio companies.
+      Enables tracking of operating performance, growth rates, and margin trends over time.
+      
+      **Grain**: One row per company per period (quarterly)
+      
+      **Source Systems**: Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Revenue and EBITDA trend line charts
+      - Growth rate analysis
+      - Margin trend tracking
+      - Company performance comparison
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        company_name,
+        period_year,
+        period_quarter,
+        revenue_usd,
+        ebitda_usd,
+        ebitda_margin_pct,
+        revenue_growth_pct
+      FROM mrt_company_financials_trend
+      WHERE company_id = 'COMP123'
+      ORDER BY period_end_date;
+      ```
+    columns:
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: company_name
+        description: "Company name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: fund_id
+        description: "Primary fund investor - Foreign Key to dim_funds"
+        tests:
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Primary fund name for context"
+      
+      - name: period_end_date
+        description: "End date of the financial reporting period"
+        tests:
+          - not_null
+      
+      - name: period_year
+        description: "Year extracted from period_end_date"
+        tests:
+          - not_null
+      
+      - name: period_quarter
+        description: "Quarter extracted from period_end_date (1-4)"
+        tests:
+          - not_null
+      
+      - name: revenue_usd
+        description: "Revenue for the period, converted to USD"
+      
+      - name: ebitda_usd
+        description: "EBITDA for the period, converted to USD"
+      
+      - name: net_income_usd
+        description: "Net income for the period, converted to USD"
+      
+      - name: ebitda_margin_pct
+        description: "EBITDA margin as percentage (EBITDA / revenue * 100)"
+      
+      - name: revenue_growth_pct
+        description: "Period-over-period revenue growth percentage"
+      
+      - name: ebitda_growth_pct
+        description: "Period-over-period EBITDA growth percentage"
+      
+      - name: current_valuation_usd
+        description: "Latest company valuation in USD for context"
+      
+      - name: source_system
+        description: "Source system indicator (PM)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PM']
+
+  - name: mrt_investment_activity_monthly
+    description: |
+      BI-ready metrics model showing monthly transaction activity by type to understand cash flow 
+      patterns and deployment pace. Aggregates all transaction types from accounting and fund admin.
+      
+      **Grain**: One row per fund per month per transaction type
+      
+      **Source Systems**: Accounting (ACC), Fund Administration (ADMIN)
+      
+      **Use Cases**:
+      - Investment activity timeline charts
+      - Cash flow pattern analysis
+      - Deployment pace tracking
+      - Transaction type breakdown
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        activity_year,
+        activity_month,
+        transaction_type,
+        SUM(total_amount_usd) as total_amount
+      FROM mrt_investment_activity_monthly
+      WHERE fund_id = 'FUND123'
+      GROUP BY activity_year, activity_month, transaction_type
+      ORDER BY activity_month;
+      ```
+    columns:
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: activity_month
+        description: "First day of the month for the transaction activity"
+        tests:
+          - not_null
+      
+      - name: activity_year
+        description: "Year extracted from activity_month"
+        tests:
+          - not_null
+      
+      - name: activity_quarter
+        description: "Quarter extracted from activity_month (1-4)"
+        tests:
+          - not_null
+      
+      - name: transaction_type
+        description: "Type of transaction (DRAWDOWN, DISTRIBUTION, INVESTMENT_TRANSACTION, EXPENSE, MANAGEMENT_FEE)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DRAWDOWN', 'DISTRIBUTION', 'INVESTMENT_TRANSACTION', 'EXPENSE', 'MANAGEMENT_FEE']
+      
+      - name: transaction_count
+        description: "Count of transactions in this month and type"
+        tests:
+          - not_null
+      
+      - name: total_amount_usd
+        description: "Sum of transaction amounts in USD"
+        tests:
+          - not_null
+      
+      - name: source_systems
+        description: "Source system indicator (varies by transaction type)"
+        tests:
+          - not_null
+
+  - name: mrt_loan_portfolio_summary
+    description: |
+      BI-ready metrics model aggregating loan portfolio metrics for debt-focused funds. Provides
+      weighted average rates, maturity profile, and utilization metrics.
+      
+      **Grain**: One row per fund per maturity year
+      
+      **Source Systems**: Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Loan maturity profile charts
+      - Weighted average yield analysis
+      - Portfolio utilization tracking
+      - Credit exposure monitoring
+      
+      **Example Query**:
+      ```sql
+      SELECT 
+        fund_name,
+        maturity_year,
+        loan_count,
+        total_commitment_usd,
+        total_outstanding_usd,
+        weighted_avg_rate_pct,
+        utilization_pct
+      FROM mrt_loan_portfolio_summary
+      ORDER BY fund_name, maturity_year;
+      ```
+    columns:
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: maturity_year
+        description: "Year when loans mature, extracted from maturity_date"
+        tests:
+          - not_null
+      
+      - name: loan_count
+        description: "Count of loans maturing in this year"
+        tests:
+          - not_null
+      
+      - name: total_commitment_usd
+        description: "Sum of loan commitment amounts in USD"
+        tests:
+          - not_null
+      
+      - name: total_outstanding_usd
+        description: "Sum of current outstanding principal in USD"
+        tests:
+          - not_null
+      
+      - name: weighted_avg_rate_pct
+        description: "Weighted average interest rate (weighted by outstanding principal)"
+      
+      - name: weighted_avg_spread_bps
+        description: "Weighted average spread in basis points (weighted by outstanding principal)"
+      
+      - name: utilization_pct
+        description: "Utilization percentage (total_outstanding_usd / total_commitment_usd * 100)"
+      
+      - name: source_system
+        description: "Source system indicator (PM)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PM']
+      
+      - name: as_of_date
+        description: "Date of the latest loan snapshot"
+        tests:
+          - not_null

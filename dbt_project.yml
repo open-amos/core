@@ -20,3 +20,8 @@ models:
       +database: "{{ env_var('DBT_CORE_DATABASE', 'CORE') }}"
       +schema: public
       +tags: ["marts", "core"]
+      
+      metrics:
+        +materialized: table
+        +schema: metrics
+        +tags: ["marts", "metrics", "bi"]
