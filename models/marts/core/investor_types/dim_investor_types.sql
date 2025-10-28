@@ -11,8 +11,8 @@ with investor_types as (
         name,
         description,
         kyc_category,
-        current_timestamp() as created_at,
-        current_timestamp() as updated_at
+        current_timestamp as created_at,
+        current_timestamp as updated_at
     from {{ ref('stg_ref__investor_types') }}
 )
 
