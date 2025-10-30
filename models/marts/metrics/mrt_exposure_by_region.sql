@@ -5,7 +5,7 @@
     )
 }}
 
--- Time-series exposure by region showing cumulative growth as opportunities close
+-- Time-series exposure by region with fund and stage breakdowns
 with latest_fx_rates as (
     -- Get the most recent FX rate for each currency pair to USD
     select
@@ -59,10 +59,12 @@ deployed_capital_by_instrument as (
         and lis.fair_value is not null
 ),
 
-deployed_by_region as (
-    -- Deployed capital by region (current baseline)
+deployed_by_region_fund as (
+    -- Deployed capital by region and fund
     select
         coalesce(c.region, 'Unknown Region') as region,
+        inst.fund_id,
+        f.name as fund_name,
         sum(
             dci.fair_value_usd * 
             case
@@ -73,22 +75,47 @@ deployed_by_region as (
         ) as deployed_capital_usd,
         max(dci.period_end_date) as as_of_date
     from deployed_capital_by_instrument dci
+    inner join {{ ref('dim_instruments') }} inst
+        on dci.instrument_id = inst.instrument_id
+    inner join {{ ref('dim_funds') }} f
+        on inst.fund_id = f.fund_id
     left join {{ ref('br_instrument_countries') }} bc
         on dci.instrument_id = bc.instrument_id
         and (bc.valid_from is null or dci.period_end_date >= bc.valid_from)
         and (bc.valid_to is null or dci.period_end_date <= bc.valid_to)
     left join {{ ref('dim_countries') }} c
         on bc.country_code = c.country_iso2_code
-    group by coalesce(c.region, 'Unknown Region')
+    group by coalesce(c.region, 'Unknown Region'), inst.fund_id, f.name
+),
+
+-- Add "All Funds" aggregation
+deployed_all_funds as (
+    select
+        region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        sum(deployed_capital_usd) as deployed_capital_usd,
+        max(as_of_date) as as_of_date
+    from deployed_by_region_fund
+    group by region
+),
+
+deployed_combined as (
+    select * from deployed_by_region_fund
+    union all
+    select * from deployed_all_funds
 ),
 
 active_opportunities as (
-    -- Get active opportunities with close dates
+    -- Get active opportunities with close dates, fund, and stage
     select
         opp.opportunity_id,
+        opp.fund_id,
         opp.amount,
         opp.close_date,
-        opp.stage_id
+        opp.stage_id,
+        stg.name as stage_name,
+        stg."order" as stage_order
     from {{ ref('dim_opportunities') }} opp
     inner join {{ ref('dim_stages') }} stg
         on opp.stage_id = stg.stage_id
@@ -96,23 +123,97 @@ active_opportunities as (
         and opp.close_date is not null
 ),
 
-pipeline_by_region_month as (
-    -- Pipeline opportunities by region and close month
+-- Get all stages for cross-joining
+all_stages as (
+    select
+        stage_id,
+        name as stage_name,
+        "order" as stage_order
+    from {{ ref('dim_stages') }}
+    where name not in ('Declined', 'Committed')
+),
+
+-- For each stage, calculate cumulative pipeline including that stage and all later stages
+pipeline_by_region_month_fund_stage as (
+    -- Pipeline opportunities by region, month, fund, and stage (cumulative from stage onwards)
     select
         date_trunc('month', ao.close_date) as close_month,
         coalesce(c.region, 'Unknown Region') as region,
+        ao.fund_id,
+        f.name as fund_name,
+        s.stage_id,
+        s.stage_name,
         sum(
             ao.amount * coalesce(boc.allocation_pct / 100.0, 1.0)
         ) as pipeline_value_usd
     from active_opportunities ao
+    inner join {{ ref('dim_funds') }} f
+        on ao.fund_id = f.fund_id
     left join {{ ref('br_opportunity_countries') }} boc
         on ao.opportunity_id = boc.opportunity_id
     left join {{ ref('dim_countries') }} c
         on boc.country_code = c.country_iso2_code
-    group by date_trunc('month', ao.close_date), coalesce(c.region, 'Unknown Region')
+    -- Cross join with stages to create cumulative stage aggregations
+    cross join all_stages s
+    -- Only include opportunities at this stage or later stages (higher order)
+    where ao.stage_order >= s.stage_order
+    group by date_trunc('month', ao.close_date), coalesce(c.region, 'Unknown Region'), 
+             ao.fund_id, f.name, s.stage_id, s.stage_name
 ),
 
--- Generate month spine: current month (October 2025) plus next 12 months
+-- Add "All Funds" aggregation for pipeline
+pipeline_all_funds as (
+    select
+        close_month,
+        region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        stage_id,
+        stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, region, stage_id, stage_name
+),
+
+-- Add "All Stages" aggregation for pipeline (by fund)
+pipeline_all_stages as (
+    select
+        close_month,
+        region,
+        fund_id,
+        fund_name,
+        'ALL' as stage_id,
+        'All Stages' as stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, region, fund_id, fund_name
+),
+
+-- Add "All Funds, All Stages" aggregation
+pipeline_all_funds_all_stages as (
+    select
+        close_month,
+        region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        'ALL' as stage_id,
+        'All Stages' as stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, region
+),
+
+pipeline_combined as (
+    select * from pipeline_by_region_month_fund_stage
+    union all
+    select * from pipeline_all_funds
+    union all
+    select * from pipeline_all_stages
+    union all
+    select * from pipeline_all_funds_all_stages
+),
+
+-- Generate month spine
 month_spine as (
     select
         date_trunc('month', current_date) + (seq.month_offset || ' months')::interval as exposure_month
@@ -125,32 +226,56 @@ month_spine as (
     ) seq
 ),
 
-region_spine as (
-    select distinct region from deployed_by_region
+-- Create spine of actual region-fund-stage combinations that exist in the data
+region_fund_stage_combinations as (
+    select distinct
+        region,
+        fund_id,
+        fund_name,
+        'ALL' as stage_id,
+        'All Stages' as stage_name
+    from deployed_combined
+    
     union
-    select distinct region from pipeline_by_region_month
+    
+    select distinct
+        region,
+        fund_id,
+        fund_name,
+        stage_id,
+        stage_name
+    from pipeline_combined
 ),
 
--- Cross join to get all region-month combinations
-region_month_spine as (
+full_spine as (
     select
         ms.exposure_month,
-        rs.region
+        rfsc.region,
+        rfsc.fund_id,
+        rfsc.fund_name,
+        rfsc.stage_id,
+        rfsc.stage_name
     from month_spine ms
-    cross join region_spine rs
+    cross join region_fund_stage_combinations rfsc
 ),
 
--- Calculate cumulative closed opportunities up to and including each month
+-- Calculate cumulative closed opportunities
 cumulative_closed_pipeline as (
     select
-        rms.exposure_month,
-        rms.region,
-        coalesce(sum(prm.pipeline_value_usd), 0) as closed_pipeline_usd
-    from region_month_spine rms
-    left join pipeline_by_region_month prm
-        on rms.region = prm.region
-        and prm.close_month <= rms.exposure_month
-    group by rms.exposure_month, rms.region
+        sp.exposure_month,
+        sp.region,
+        sp.fund_id,
+        sp.fund_name,
+        sp.stage_id,
+        sp.stage_name,
+        coalesce(sum(pc.pipeline_value_usd), 0) as closed_pipeline_usd
+    from full_spine sp
+    left join pipeline_combined pc
+        on sp.region = pc.region
+        and sp.fund_id = pc.fund_id
+        and sp.stage_id = pc.stage_id
+        and pc.close_month <= sp.exposure_month
+    group by sp.exposure_month, sp.region, sp.fund_id, sp.fund_name, sp.stage_id, sp.stage_name
 ),
 
 final as (
@@ -160,19 +285,24 @@ final as (
         extract(year from ccp.exposure_month) as exposure_year,
         extract(month from ccp.exposure_month) as exposure_month_num,
         ccp.region,
-        coalesce(dr.deployed_capital_usd, 0) as deployed_capital_usd,
+        ccp.fund_id,
+        ccp.fund_name,
+        ccp.stage_id,
+        ccp.stage_name,
+        coalesce(dc.deployed_capital_usd, 0) as deployed_capital_usd,
         ccp.closed_pipeline_usd,
-        coalesce(dr.deployed_capital_usd, 0) + ccp.closed_pipeline_usd as total_exposure_usd,
+        coalesce(dc.deployed_capital_usd, 0) + ccp.closed_pipeline_usd as total_exposure_usd,
         case
             when ccp.exposure_month = date_trunc('month', current_date) then 'Current'
             when ccp.exposure_month < date_trunc('month', current_date) then 'Historical'
             else 'Forecast'
         end as period_type,
-        dr.as_of_date
+        dc.as_of_date
     from cumulative_closed_pipeline ccp
-    left join deployed_by_region dr
-        on ccp.region = dr.region
+    left join deployed_combined dc
+        on ccp.region = dc.region
+        and ccp.fund_id = dc.fund_id
 )
 
 select * from final
-order by region, exposure_month
+order by region, fund_name, stage_name, exposure_month
