@@ -1,79 +1,81 @@
 version: 2
 
 models:
-  - name: mrt_exposure_by_country
+  - name: mrt_exposure_by_region
     description: |
-      BI-ready metrics model combining deployed capital from portfolio positions with pipeline value 
-      from CRM opportunities to show total exposure by country. This model demonstrates cross-system 
-      integration by unifying data from Portfolio Management and CRM systems.
+      BI-ready time-series metrics model showing cumulative growing exposure by region over time. 
+      Displays deployed capital (baseline) plus cumulative closed opportunities (opportunities that 
+      have closed up to and including each month). Creates an ever-increasing forecast line chart 
+      showing how total exposure grows as pipeline opportunities are expected to close.
       
-      **Grain**: One row per country
+      **Grain**: One row per region per month
       
       **Source Systems**: Portfolio Management (PM), CRM
       
       **Use Cases**:
-      - Geographic concentration risk analysis
-      - Country exposure bar charts
-      - Regional allocation pie charts
-      - Pipeline vs deployed capital comparison
+      - Regional exposure growth forecast line charts
+      - Cumulative deployment visualization showing growth over time
+      - Total exposure projection by region (always increasing or flat)
+      - Regional allocation growth timeline
       
       **Example Query**:
       ```sql
       SELECT 
-        country_name,
+        exposure_month,
         region,
         deployed_capital_usd,
-        pipeline_value_usd,
-        total_exposure_usd
-      FROM mrt_exposure_by_country
-      ORDER BY total_exposure_usd DESC
-      LIMIT 10;
+        closed_pipeline_usd,
+        total_exposure_usd,
+        period_type
+      FROM mrt_exposure_by_region
+      WHERE region = 'North America'
+      ORDER BY exposure_month;
       ```
     columns:
-      - name: country_code
-        description: "ISO 3166-1 alpha-2 country code - Primary Key"
+      - name: exposure_month
+        description: "First day of the month for the exposure data"
         tests:
-          - unique
           - not_null
       
-      - name: country_name
-        description: "Human-readable country name from canonical dimension"
+      - name: exposure_year
+        description: "Year extracted from exposure_month"
+        tests:
+          - not_null
+      
+      - name: exposure_month_num
+        description: "Month number (1-12) extracted from exposure_month"
         tests:
           - not_null
       
       - name: region
-        description: "Geographic region for grouping (e.g., North America, Europe, Asia Pacific)"
-      
-      - name: deployed_capital_usd
-        description: "Total deployed capital from current instrument positions, converted to USD"
+        description: "Geographic region (e.g., North America, Europe, Asia Pacific)"
         tests:
           - not_null
       
-      - name: pipeline_value_usd
-        description: "Total pipeline value from active CRM opportunities, converted to USD"
+      - name: deployed_capital_usd
+        description: "Current deployed capital from instrument positions (constant baseline across all months), converted to USD"
+        tests:
+          - not_null
+      
+      - name: closed_pipeline_usd
+        description: "Cumulative sum of all opportunities that have closed up to and including this month, converted to USD"
         tests:
           - not_null
       
       - name: total_exposure_usd
-        description: "Sum of deployed capital and pipeline value"
+        description: "Sum of deployed capital and cumulative closed pipeline (shows total exposure growing over time)"
         tests:
           - not_null
       
-      - name: deployed_pct
-        description: "Deployed capital as percentage of total exposure"
-      
-      - name: pipeline_pct
-        description: "Pipeline value as percentage of total exposure"
-      
-      - name: source_systems
-        description: "Comma-separated list of contributing source systems (e.g., 'PM, CRM')"
+      - name: period_type
+        description: "Indicates if the month is 'Current', 'Historical', or 'Forecast'"
         tests:
           - not_null
+          - accepted_values:
+              values: ['Current', 'Historical', 'Forecast']
       
       - name: as_of_date
         description: "Date of the latest snapshot used for deployed capital calculations"
-        tests:
-          - not_null
 
   - name: mrt_exposure_by_industry
     description: |
