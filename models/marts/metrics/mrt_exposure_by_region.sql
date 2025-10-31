@@ -100,10 +100,37 @@ deployed_all_funds as (
     group by region
 ),
 
+-- Add "All Regions" aggregation (by fund)
+deployed_all_regions as (
+    select
+        'All Regions' as region,
+        fund_id,
+        fund_name,
+        sum(deployed_capital_usd) as deployed_capital_usd,
+        max(as_of_date) as as_of_date
+    from deployed_by_region_fund
+    group by fund_id, fund_name
+),
+
+-- Add "All Regions, All Funds" aggregation
+deployed_all_regions_all_funds as (
+    select
+        'All Regions' as region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        sum(deployed_capital_usd) as deployed_capital_usd,
+        max(as_of_date) as as_of_date
+    from deployed_by_region_fund
+),
+
 deployed_combined as (
     select * from deployed_by_region_fund
     union all
     select * from deployed_all_funds
+    union all
+    select * from deployed_all_regions
+    union all
+    select * from deployed_all_regions_all_funds
 ),
 
 active_opportunities as (
@@ -189,7 +216,7 @@ pipeline_all_stages as (
     group by close_month, region, fund_id, fund_name
 ),
 
--- Add "All Funds, All Stages" aggregation
+-- Add "All Funds, All Stages" aggregation (by region)
 pipeline_all_funds_all_stages as (
     select
         close_month,
@@ -203,6 +230,62 @@ pipeline_all_funds_all_stages as (
     group by close_month, region
 ),
 
+-- Add "All Regions" aggregation (by fund and stage)
+pipeline_all_regions as (
+    select
+        close_month,
+        'All Regions' as region,
+        fund_id,
+        fund_name,
+        stage_id,
+        stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, fund_id, fund_name, stage_id, stage_name
+),
+
+-- Add "All Regions, All Funds" aggregation (by stage)
+pipeline_all_regions_all_funds as (
+    select
+        close_month,
+        'All Regions' as region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        stage_id,
+        stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, stage_id, stage_name
+),
+
+-- Add "All Regions, All Stages" aggregation (by fund)
+pipeline_all_regions_all_stages as (
+    select
+        close_month,
+        'All Regions' as region,
+        fund_id,
+        fund_name,
+        'ALL' as stage_id,
+        'All Stages' as stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month, fund_id, fund_name
+),
+
+-- Add "All Regions, All Funds, All Stages" aggregation
+pipeline_all_regions_all_funds_all_stages as (
+    select
+        close_month,
+        'All Regions' as region,
+        'ALL' as fund_id,
+        'All Funds' as fund_name,
+        'ALL' as stage_id,
+        'All Stages' as stage_name,
+        sum(pipeline_value_usd) as pipeline_value_usd
+    from pipeline_by_region_month_fund_stage
+    group by close_month
+),
+
 pipeline_combined as (
     select * from pipeline_by_region_month_fund_stage
     union all
@@ -211,6 +294,14 @@ pipeline_combined as (
     select * from pipeline_all_stages
     union all
     select * from pipeline_all_funds_all_stages
+    union all
+    select * from pipeline_all_regions
+    union all
+    select * from pipeline_all_regions_all_funds
+    union all
+    select * from pipeline_all_regions_all_stages
+    union all
+    select * from pipeline_all_regions_all_funds_all_stages
 ),
 
 -- Generate month spine
