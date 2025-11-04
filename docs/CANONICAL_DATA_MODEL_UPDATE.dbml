@@ -587,6 +587,7 @@ Table "public"."industries" {
 Table "public"."opportunity_industries" {
   "opportunity_id" varchar(64) [not null, ref: < "public"."opportunities"."opportunity_id"]
   "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
+  "primary_flag" boolean
   "created_at" timestamp
   "updated_at" timestamp
 
@@ -706,4 +707,17 @@ Table "public"."instrument_snapshots_equity" {
   "created_at" timestamp [default: `CURRENT_TIMESTAMP`]
   "updated_at" timestamp [default: `CURRENT_TIMESTAMP`]
   Note: 'Null vs zero semantics mirror instrument_snapshot.'
+}
+
+Table "public"."company_countries" {
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "country_code" "char(2)" [not null, ref: < "public"."countries"."country_iso2_code"]
+  "primary_flag" boolean [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    (company_id, country_code) [pk, name: "pk_company_industry_company_id_industry_id"]
+    company_id [name: "idx_company_industry_company_id"]
+  }
 }
