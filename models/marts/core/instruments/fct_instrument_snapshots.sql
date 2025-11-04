@@ -1,5 +1,12 @@
--- Fact table for instrument valuations
--- Thin mart layer selecting from int_instrument_snapshots_curated
+{{
+    config(
+        materialized='table',
+        tags=['marts', 'core', 'fact']
+    )
+}}
+
+-- Fact table for instrument valuations - common snapshot fields only
+-- Type-specific metrics moved to fct_instrument_snapshots_equity and fct_instrument_snapshots_credit
 with instrument_snapshots as (
     select
         instrument_snapshot_id,
@@ -11,22 +18,21 @@ with instrument_snapshots as (
         snapshot_source,
         currency_code,
         fx_rate,
+        fx_rate_as_of,
+        fx_rate_source,
         fair_value,
-        amortized_cost,
-        principal_outstanding,
-        undrawn_commitment,
+        -- Calculate FX conversions for common fields
+        case
+            when fx_rate is not null and fair_value is not null
+            then fair_value * fx_rate
+            else null
+        end as fair_value_converted,
         accrued_income,
-        accrued_fees,
-        fair_value_converted,
-        amortized_cost_converted,
-        principal_outstanding_converted,
-        undrawn_commitment_converted,
-        accrued_income_converted,
-        accrued_fees_converted,
-        equity_stake_pct,
-        equity_dividends_cum,
-        equity_exit_proceeds_actual,
-        equity_exit_proceeds_forecast,
+        case
+            when fx_rate is not null and accrued_income is not null
+            then accrued_income * fx_rate
+            else null
+        end as accrued_income_converted,
         snapshot_source_file_ref,
         created_at,
         updated_at

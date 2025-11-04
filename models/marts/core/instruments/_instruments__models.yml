@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: dim_instruments
-    description: "Canonical instrument dimension - investment instruments held by funds in portfolio companies"
+    description: "Canonical instrument dimension - base attributes for all investment instruments held by funds in portfolio companies. Type-specific attributes are in dim_instruments_equity and dim_instruments_credit extension tables."
     columns:
       - name: instrument_id
         description: "Unique instrument identifier - Primary Key"
@@ -26,19 +26,15 @@ models:
               to: ref('dim_companies')
               field: company_id
       
+      - name: name
+        description: "Name of the instrument"
+      
       - name: instrument_type
         description: "Type of instrument - Enum: EQUITY, LOAN, CONVERTIBLE, WARRANT, FUND_INTEREST"
         tests:
           - not_null
           - accepted_values:
               values: ['EQUITY', 'LOAN', 'CONVERTIBLE', 'WARRANT', 'FUND_INTEREST']
-      
-      - name: currency_code
-        description: "Currency code for the instrument - Foreign Key to dim_currencies"
-        tests:
-          - relationships:
-              to: ref('dim_currencies')
-              field: currency_code
       
       - name: inception_date
         description: "Date when the instrument was created or acquired"
@@ -55,8 +51,171 @@ models:
       - name: updated_at
         description: "Timestamp when the instrument record was last updated"
 
+  - name: dim_instruments_equity
+    description: "Equity-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='EQUITY'."
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('dim_instruments')
+          compare_condition: "instrument_type = 'EQUITY'"
+    columns:
+      - name: instrument_id
+        description: "Unique instrument identifier - Primary Key and Foreign Key to dim_instruments"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: share_class_id
+        description: "Share class identifier - Foreign Key to dim_share_classes"
+        tests:
+          - relationships:
+              to: ref('dim_share_classes')
+              field: share_class_id
+      
+      - name: initial_share_count
+        description: "Initial number of shares acquired"
+      
+      - name: initial_ownership_pct
+        description: "Initial ownership percentage"
+      
+      - name: initial_cost
+        description: "Initial cost in original currency"
+      
+      - name: initial_price_per_share
+        description: "Initial price per share in original currency"
+      
+      - name: currency_code
+        description: "Currency code for the equity instrument - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion to base currency"
+      
+      - name: fx_rate_as_of
+        description: "Date of the FX rate"
+      
+      - name: fx_rate_source
+        description: "Source of the FX rate"
+      
+      - name: initial_cost_converted
+        description: "Initial cost converted to base currency"
+      
+      - name: description
+        description: "Description of the equity instrument"
+      
+      - name: created_at
+        description: "Timestamp when the record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the record was last updated"
+
+  - name: dim_instruments_credit
+    description: "Credit-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='LOAN'."
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('dim_instruments')
+          compare_condition: "instrument_type = 'LOAN'"
+    columns:
+      - name: instrument_id
+        description: "Unique instrument identifier - Primary Key and Foreign Key to dim_instruments"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: facility_id
+        description: "Facility identifier - Foreign Key to dim_facilities"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_facilities')
+              field: facility_id
+      
+      - name: instrument_credit_type
+        description: "Type of credit instrument - Enum: TERM, REVOLVER, DDTL, BRIDGE, MEZZ"
+        tests:
+          - accepted_values:
+              values: ['TERM', 'REVOLVER', 'DDTL', 'BRIDGE', 'MEZZ']
+      
+      - name: tranche_label
+        description: "Tranche label or identifier"
+      
+      - name: commitment_amount
+        description: "Commitment amount in original currency"
+      
+      - name: currency_code
+        description: "Currency code for the credit instrument - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion to base currency"
+      
+      - name: fx_rate_as_of
+        description: "Date of the FX rate"
+      
+      - name: fx_rate_source
+        description: "Source of the FX rate"
+      
+      - name: commitment_amount_converted
+        description: "Commitment amount converted to base currency"
+      
+      - name: start_date
+        description: "Start date of the credit instrument"
+      
+      - name: maturity_date
+        description: "Maturity date of the credit instrument"
+      
+      - name: interest_index
+        description: "Interest rate index - Enum: SOFR, LIBOR, EURIBOR, PRIME, FIXED"
+        tests:
+          - accepted_values:
+              values: ['SOFR', 'LIBOR', 'EURIBOR', 'PRIME', 'FIXED']
+      
+      - name: index_tenor_days
+        description: "Tenor of the interest rate index in days"
+      
+      - name: fixed_rate_pct
+        description: "Fixed interest rate percentage (for FIXED index)"
+      
+      - name: spread_bps
+        description: "Spread over index in basis points"
+      
+      - name: floor_pct
+        description: "Interest rate floor percentage"
+      
+      - name: day_count
+        description: "Day count convention"
+      
+      - name: pay_freq_months
+        description: "Payment frequency in months"
+      
+      - name: amortization_type
+        description: "Amortization type"
+      
+      - name: security_rank
+        description: "Security rank"
+      
+      - name: status
+        description: "Status of the credit instrument"
+      
+      - name: created_at
+        description: "Timestamp when the record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the record was last updated"
+
   - name: fct_instrument_snapshots
-    description: "Fact table for instrument valuations and performance metrics over time"
+    description: "Fact table for instrument valuations - common snapshot fields only. Type-specific metrics are in fct_instrument_snapshots_equity and fct_instrument_snapshots_credit."
     columns:
       - name: instrument_snapshot_id
         description: "Unique instrument snapshot identifier - Primary Key"
@@ -105,53 +264,23 @@ models:
       - name: fx_rate
         description: "Foreign exchange rate used for conversion"
       
+      - name: fx_rate_as_of
+        description: "Date of the FX rate"
+      
+      - name: fx_rate_source
+        description: "Source of the FX rate"
+      
       - name: fair_value
-        description: "Fair value of the instrument"
-      
-      - name: amortized_cost
-        description: "Amortized cost of the instrument"
-      
-      - name: principal_outstanding
-        description: "Outstanding principal (for debt instruments)"
-      
-      - name: undrawn_commitment
-        description: "Undrawn commitment amount"
-      
-      - name: accrued_income
-        description: "Accrued income"
-      
-      - name: accrued_fees
-        description: "Accrued fees"
+        description: "Fair value of the instrument in original currency"
       
       - name: fair_value_converted
         description: "Fair value converted to fund base currency"
       
-      - name: amortized_cost_converted
-        description: "Amortized cost converted to fund base currency"
-      
-      - name: principal_outstanding_converted
-        description: "Principal outstanding converted to fund base currency"
-      
-      - name: undrawn_commitment_converted
-        description: "Undrawn commitment converted to fund base currency"
+      - name: accrued_income
+        description: "Accrued income in original currency"
       
       - name: accrued_income_converted
         description: "Accrued income converted to fund base currency"
-      
-      - name: accrued_fees_converted
-        description: "Accrued fees converted to fund base currency"
-      
-      - name: equity_stake_pct
-        description: "Equity ownership percentage (for equity instruments)"
-      
-      - name: equity_dividends_cum
-        description: "Cumulative dividends received (for equity instruments)"
-      
-      - name: equity_exit_proceeds_actual
-        description: "Actual exit proceeds (for exited equity instruments)"
-      
-      - name: equity_exit_proceeds_forecast
-        description: "Forecasted exit proceeds (for equity instruments)"
       
       - name: snapshot_source_file_ref
         description: "Reference to source file or system"
@@ -161,6 +290,87 @@ models:
       
       - name: updated_at
         description: "Timestamp when the snapshot record was last updated"
+
+  - name: fct_instrument_snapshots_equity
+    description: "Equity-specific snapshot metrics. 1:1 relationship with fct_instrument_snapshots for equity instruments."
+    columns:
+      - name: instrument_snapshot_id
+        description: "Unique instrument snapshot identifier - Primary Key and Foreign Key to fct_instrument_snapshots"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('fct_instrument_snapshots')
+              field: instrument_snapshot_id
+      
+      - name: equity_stake_pct
+        description: "Equity ownership percentage"
+      
+      - name: stake_basis
+        description: "Basis for calculating equity stake (e.g., FULLY_DILUTED, BASIC)"
+      
+      - name: created_at
+        description: "Timestamp when the record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the record was last updated"
+
+  - name: fct_instrument_snapshots_credit
+    description: "Credit-specific snapshot metrics. 1:1 relationship with fct_instrument_snapshots for credit instruments."
+    columns:
+      - name: instrument_snapshot_id
+        description: "Unique instrument snapshot identifier - Primary Key and Foreign Key to fct_instrument_snapshots"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('fct_instrument_snapshots')
+              field: instrument_snapshot_id
+      
+      - name: principal_outstanding
+        description: "Outstanding principal in original currency"
+      
+      - name: principal_outstanding_converted
+        description: "Outstanding principal converted to base currency"
+      
+      - name: undrawn_commitment
+        description: "Undrawn commitment amount in original currency"
+      
+      - name: undrawn_commitment_converted
+        description: "Undrawn commitment converted to base currency"
+      
+      - name: accrued_interest
+        description: "Accrued interest in original currency"
+      
+      - name: accrued_interest_converted
+        description: "Accrued interest converted to base currency"
+      
+      - name: accrued_fees
+        description: "Accrued fees in original currency"
+      
+      - name: accrued_fees_converted
+        description: "Accrued fees converted to base currency"
+      
+      - name: amortized_cost
+        description: "Amortized cost in original currency"
+      
+      - name: amortized_cost_converted
+        description: "Amortized cost converted to base currency"
+      
+      - name: expected_loss
+        description: "Expected loss in original currency"
+      
+      - name: expected_loss_converted
+        description: "Expected loss converted to base currency"
+      
+      - name: status
+        description: "Status of the credit instrument"
+      
+      - name: created_at
+        description: "Timestamp when the record was created"
+      
+      - name: updated_at
+        description: "Timestamp when the record was last updated"
 
   - name: fct_instrument_cashflows
     description: "Fact table for instrument-level cash movements including contributions, distributions, dividends, and other cashflows"
@@ -227,7 +437,7 @@ models:
         description: "Timestamp when the cashflow record was last updated"
 
   - name: br_instrument_countries
-    description: "Bridge table for instrument to country allocations with temporal validity"
+    description: "Bridge table for instrument to country allocations with temporal validity and allocation percentages"
     columns:
       - name: instrument_id
         description: "Instrument identifier - Foreign Key to dim_instruments"
@@ -254,10 +464,10 @@ models:
         description: "End date of validity for this country allocation (null for ongoing)"
       
       - name: allocation_pct
-        description: "Percentage allocation to this country"
+        description: "Percentage allocation to this country (geographic exposure)"
       
       - name: role
-        description: "Role of the country (e.g., OPERATING, DOMICILE)"
+        description: "Role of the country (e.g., HEADQUARTERS, BORROWER, OPERATIONS)"
       
       - name: primary_flag
         description: "Indicates if this is the primary country for the instrument"

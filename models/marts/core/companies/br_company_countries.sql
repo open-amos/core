@@ -5,16 +5,18 @@
     )
 }}
 
-with company_industries as (
+with company_countries as (
     select
         company_id,
-        industry_id,
+        country_code,
         valid_from,
         valid_to,
+        allocation_pct,
+        role,
         primary_flag,
         created_at,
         updated_at
-    from {{ ref('int_company_industries_mapped') }}
+    from {{ ref('int_company_countries_mapped') }}
 )
 
-select * from company_industries
+select * from company_countries

@@ -39,11 +39,7 @@ models:
               field: instrument_id
       
       - name: investment_round_id
-        description: "Investment round identifier - Foreign Key to dim_investment_rounds"
-        tests:
-          - relationships:
-              to: ref('dim_investment_rounds')
-              field: investment_round_id
+        description: "Investment round identifier (legacy field, investment rounds now tracked through instruments)"
       
       - name: facility_id
         description: "Facility identifier - Foreign Key to dim_facilities"

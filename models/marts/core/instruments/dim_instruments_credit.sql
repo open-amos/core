@@ -5,15 +5,18 @@
     )
 }}
 
-with loans as (
+with instruments_credit as (
     select
-        loan_id,
         instrument_id,
         facility_id,
-        loan_type,
+        instrument_credit_type,
         tranche_label,
         commitment_amount,
         currency_code,
+        fx_rate,
+        fx_rate_as_of,
+        fx_rate_source,
+        commitment_amount_converted,
         start_date,
         maturity_date,
         interest_index,
@@ -28,7 +31,7 @@ with loans as (
         status,
         created_at,
         updated_at
-    from {{ ref('int_loans_curated') }}
+    from {{ ref('int_instruments_credit_curated') }}
 )
 
-select * from loans
+select * from instruments_credit
