@@ -55,8 +55,7 @@ models:
     description: "Equity-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='EQUITY'."
     tests:
       - dbt_utils.equal_rowcount:
-          compare_model: ref('dim_instruments')
-          compare_condition: "instrument_type = 'EQUITY'"
+          compare_model: ref('int_expect_instruments_equity')
     columns:
       - name: instrument_id
         description: "Unique instrument identifier - Primary Key and Foreign Key to dim_instruments"
@@ -118,8 +117,7 @@ models:
     description: "Credit-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='LOAN'."
     tests:
       - dbt_utils.equal_rowcount:
-          compare_model: ref('dim_instruments')
-          compare_condition: "instrument_type = 'LOAN'"
+          compare_model: ref('int_expect_instruments_credit')
     columns:
       - name: instrument_id
         description: "Unique instrument identifier - Primary Key and Foreign Key to dim_instruments"
