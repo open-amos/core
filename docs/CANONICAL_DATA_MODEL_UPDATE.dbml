@@ -105,7 +105,6 @@ Table "public"."currencies" {
   "symbol" varchar(10)
   "created_at" timestamp
   "updated_at" timestamp
-  Note: 'On-delete behavior to enforce in SQL migrations: funds -> commitments/transactions [RESTRICT].'
 }
 
 Table "public"."funds" {
@@ -119,8 +118,11 @@ Table "public"."funds" {
   "target_commitment" numeric(20,2)
   "incorporated_in" varchar(128)
   "base_currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "strategy" text
+  "final_close_date" date
   "created_at" timestamp
   "updated_at" timestamp
+  Note: 'On-delete behavior to enforce in SQL migrations: funds -> commitments/transactions [RESTRICT].'
 }
 
 Table "public"."fund_snapshots" {
@@ -131,6 +133,9 @@ Table "public"."fund_snapshots" {
   "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
   "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
   "snapshot_source" snapshot_source [not null, default: `INTERNAL`]
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "source" varchar(128)
+  "source_reference" varchar(400)
   "committed_capital" numeric(20,2)
   "called_capital" numeric(20,2)
   "dpi" decimal(18,10)
@@ -259,12 +264,17 @@ Table "public"."investor_types" {
   "kyc_category" varchar(128)
   "created_at" timestamp
   "updated_at" timestamp
+
+  Indexes {
+    name [unique, name: "uq_investor_types_name"]
+  }
 }
 
 Table "public"."investors" {
   "investor_id" varchar(64) [pk, not null]
   "name" varchar(255) [not null]
   "investor_type_id" varchar(64) [ref: < "public"."investor_types"."investor_type_id"]
+  "domicile_country_code" "char(2)" [ref: < "public"."countries"."country_iso2_code"]
   "created_at" timestamp
   "updated_at" timestamp
 
@@ -274,7 +284,7 @@ Table "public"."investors" {
 }
 
 Table "public"."instruments" {
-  "instrument_id" varchar(64) [pk, not null]
+  "instrument_id" varchar(64) [pk, not null, ref: < "public"."instrument_countries"."instrument_id", ref: < "public"."instrument_industries"."instrument_id"]
   "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
   "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "name" varchar(255) [not null]
@@ -367,9 +377,12 @@ Table "public"."opportunity_countries" {
 }
 
 Table "public"."commitments" {
-  "commitment_id" varchar(64) [pk, not null]
+  "commitment_id" varchar(64) [pk, not null, ref: < "public"."commitment_snapshots"."commitment_id"]
   "fund_id" varchar(64) [not null]
   "investor_id" varchar(64) [not null, ref: < "public"."investors"."investor_id"]
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "original_amount" numeric(20,2)
+  "agreement_date" date
   "created_at" timestamp
   "updated_at" timestamp
 
@@ -418,12 +431,15 @@ Table "public"."countries" {
 
 Table "public"."commitment_snapshots" {
   "commitment_snapshot_id" varchar(64) [pk, not null]
-  "commitment_id" varchar(64) [not null, ref: < "public"."commitments"."commitment_id"]
+  "commitment_id" varchar(64) [not null]
   "period_start_date" date
   "period_end_date" date
   "frequency" varchar(32)
   "reporting_basis" varchar(32)
   "snapshot_source" snapshot_source
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "source" varchar(128)
+  "source_reference" varchar(400)
   "total_commitment" numeric(20,2)
   "total_drawdowns" numeric(20,2)
   "total_distributions" numeric(20,2)
@@ -471,14 +487,19 @@ Table "public"."company_industries" {
 Table "public"."commitment_records" {
   "commitment_record_id" varchar(64) [pk, not null]
   "commitment_id" varchar(64) [not null, ref: < "public"."commitments"."commitment_id"]
-  "date_from" date [not null]
+  "effective_date" date [not null]
+  "valid_to" date
   "amount" numeric(20,2)
   "status" varchar(64)
+  "reason" varchar(64)
+  "source" varchar(128)
+  "source_reference" varchar(400)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
     commitment_id [name: "idx_commitment_record_commitment_id"]
+    (commitment_id, effective_date) [name: "idx_commitment_record_effective"]
   }
 }
 
