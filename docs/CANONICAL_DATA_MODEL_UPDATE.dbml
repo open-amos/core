@@ -471,7 +471,7 @@ Table "public"."instrument_industries" {
 }
 
 Table "public"."company_industries" {
-  "company_id" varchar(64) [not null]
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
   "primary_flag" boolean [not null]
   "created_at" timestamp
