@@ -184,23 +184,6 @@ Table "public"."share_classes" {
   }
 }
 
-Table "public"."shareholders" {
-  "shareholder_id" varchar(500) [pk, not null]
-  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
-  "name" varchar(255) [not null]
-  "type" varchar(64)
-  "number_of_shares" numeric(24,6)
-  "share_class_id" varchar(64) [ref: < "public"."share_classes"."share_class_id"]
-  "affiliated_entity" boolean
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    company_id [name: "idx_shareholder_company_id"]
-    share_class_id [name: "idx_shareholders_share_class_id"]
-  }
-}
-
 Table "public"."company_valuations" {
   "company_valuation_id" varchar(64) [pk, not null]
   "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
@@ -554,26 +537,12 @@ Table "public"."stages" {
   "updated_at" timestamp
 }
 
-Table "public"."counterparties" {
-  "counterparty_id" varchar(64) [pk, not null]
-  "name" varchar(255) [not null]
-  "type" varchar(64)
-  "country_code" "char(2)" [ref: < "public"."countries"."country_iso2_code"]
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    name [unique, name: "idx_counterparty_name"]
-    country_code [name: "idx_counterparty_country_code"]
-  }
-}
-
 Table "public"."facilities" {
   "facility_id" varchar(64) [pk, not null]
   "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
   "borrower_company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "facility_type" facility_type [not null]
-  "agent_counterparty_id" varchar(64) [ref: < "public"."counterparties"."counterparty_id"]
+  "agent_counterparty_id" varchar(64)
   "agreement_date" date [not null]
   "effective_date" date
   "maturity_date" date
@@ -632,27 +601,6 @@ Table "public"."opportunity_industries" {
   }
 }
 
-Table "public"."facility_lenders" {
-  "facility_lender_id" varchar(64) [pk, not null]
-  "facility_id" varchar(64) [not null, ref: < "public"."facilities"."facility_id"]
-  "counterparty_id" varchar(64) [ref: < "public"."counterparties"."counterparty_id"]
-  "fund_id" varchar(64) [ref: < "public"."funds"."fund_id"]
-  "syndicate_role" syndicate_role
-  "commitment_amount" numeric(24,2)
-  "allocation_pct" decimal(7,4)
-  "primary_flag" boolean
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    facility_id [name: "idx_facility_lender_facility_id"]
-    counterparty_id [name: "idx_facility_lender_counterparty_id"]
-    fund_id [name: "idx_facility_lender_fund_id"]
-    (facility_id, syndicate_role) [name: "idx_facility_lender_facility_role"]
-  }
-  Note: 'Exactly one of counterparty_id or fund_id must be non-null (XOR).'
-}
-
 Table "public"."instruments_credit" {
   "instrument_id" varchar(64) [pk, not null, ref: < "public"."instruments"."instrument_id"]
   "facility_id" varchar(64) [not null, ref: < "public"."facilities"."facility_id"]
@@ -692,7 +640,7 @@ Table "transactions" {
   "investor_id" varchar(64) [ref: < "public"."investors"."investor_id"]
   "facility_id" varchar(64) [ref: < "public"."facilities"."facility_id"]
   "instrument_id" varchar(64) [ref: < "public"."instruments"."instrument_id"]
-  "counterparty_id" varchar(64) [ref: < "public"."counterparties"."counterparty_id"]
+  "counterparty_id" varchar(64)
   "amount" numeric(24,2) [not null]
   "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
   "fx_rate" numeric(18,8)
