@@ -33,8 +33,6 @@ models:
           - accepted_values:
               values: ['TERM_LOAN_B', 'UNITRANCHE', 'REVOLVER', 'DELAYED_DRAWDOWN', 'MEZZANINE', 'RCF', 'BRIDGE']
       
-      - name: agent_counterparty_id
-        description: "Agent counterparty identifier for the facility (external reference)"
       
       - name: agreement_date
         description: "Date when the facility agreement was signed"

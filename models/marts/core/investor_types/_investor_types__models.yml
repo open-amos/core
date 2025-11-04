@@ -13,6 +13,7 @@ models:
       - name: name
         description: "Investor type name"
         tests:
+          - unique
           - not_null
       
       - name: description

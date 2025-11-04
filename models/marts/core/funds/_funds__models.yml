@@ -36,6 +36,12 @@ models:
       - name: incorporated_in
         description: "Jurisdiction where fund is incorporated"
       
+      - name: strategy
+        description: "Investment strategy description"
+      
+      - name: final_close_date
+        description: "Final close date of the fund"
+      
       - name: base_currency_code
         description: "Base currency code for the fund - Foreign Key to dim_currencies"
         tests:
@@ -89,6 +95,13 @@ models:
           - accepted_values:
               values: ['ADMIN', 'INTERNAL']
       
+      - name: currency_code
+        description: "Currency code for the snapshot - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
       - name: committed_capital
         description: "Total committed capital"
       
@@ -116,14 +129,11 @@ models:
       - name: total_management_fees
         description: "Total management fees paid"
       
-      - name: total_loans_received
-        description: "Total loans received by the fund"
+      - name: source
+        description: "Source system for the snapshot"
       
-      - name: principal_outstanding
-        description: "Outstanding principal on loans"
-      
-      - name: undrawn_commitment
-        description: "Undrawn commitment amount"
+      - name: source_reference
+        description: "Source system reference"
       
       - name: total_interest_income
         description: "Total interest income earned"

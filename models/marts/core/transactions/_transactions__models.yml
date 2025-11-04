@@ -20,6 +20,7 @@ models:
       - name: fund_id
         description: "Fund identifier - Foreign Key to dim_funds"
         tests:
+          - not_null
           - relationships:
               to: ref('dim_funds')
               field: fund_id
@@ -38,8 +39,7 @@ models:
               to: ref('dim_instruments')
               field: instrument_id
       
-      - name: investment_round_id
-        description: "Investment round identifier (legacy field, investment rounds now tracked through instruments)"
+      
       
       - name: facility_id
         description: "Facility identifier - Foreign Key to dim_facilities"
@@ -86,9 +86,17 @@ models:
       
       - name: source
         description: "Source system for the transaction"
+        tests:
+          - not_null
       
       - name: reference
         description: "External reference or identifier"
+      
+      - name: source_reference
+        description: "Source system reference (unique)"
+        tests:
+          - not_null
+          - unique
       
       - name: created_at
         description: "Timestamp when the transaction record was created"

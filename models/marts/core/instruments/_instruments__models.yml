@@ -171,15 +171,20 @@ models:
       
       - name: start_date
         description: "Start date of the credit instrument"
+        tests:
+          - not_null
       
       - name: maturity_date
         description: "Maturity date of the credit instrument"
+        tests:
+          - not_null
       
       - name: interest_index
-        description: "Interest rate index - Enum: SOFR, LIBOR, EURIBOR, PRIME, FIXED"
+        description: "Interest rate index - Enum: SOFR, EURIBOR, SONIA, FED_FUNDS, FIXED"
         tests:
+          - not_null
           - accepted_values:
-              values: ['SOFR', 'LIBOR', 'EURIBOR', 'PRIME', 'FIXED']
+              values: ['SOFR', 'EURIBOR', 'SONIA', 'FED_FUNDS', 'FIXED']
       
       - name: index_tenor_days
         description: "Tenor of the interest rate index in days"
@@ -189,21 +194,36 @@ models:
       
       - name: spread_bps
         description: "Spread over index in basis points"
+        tests:
+          - not_null
       
       - name: floor_pct
         description: "Interest rate floor percentage"
       
       - name: day_count
         description: "Day count convention"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['30E_360', 'ACT_360', 'ACT_365', 'ACT_ACT']
       
       - name: pay_freq_months
         description: "Payment frequency in months"
+        tests:
+          - not_null
       
       - name: amortization_type
         description: "Amortization type"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['BULLET', 'STRAIGHT_LINE', 'CUSTOM_SCHEDULE']
       
       - name: security_rank
         description: "Security rank"
+        tests:
+          - accepted_values:
+              values: ['SENIOR_SECURED', 'SENIOR_UNSECURED', 'SECOND_LIEN', 'MEZZANINE', 'PIK']
       
       - name: status
         description: "Status of the credit instrument"
@@ -257,6 +277,7 @@ models:
       - name: currency_code
         description: "Currency code for the valuation - Foreign Key to dim_currencies"
         tests:
+          - not_null
           - relationships:
               to: ref('dim_currencies')
               field: currency_code
@@ -360,9 +381,6 @@ models:
       - name: expected_loss
         description: "Expected loss in original currency"
       
-      - name: expected_loss_converted
-        description: "Expected loss converted to base currency"
-      
       - name: status
         description: "Status of the credit instrument"
       
@@ -390,11 +408,11 @@ models:
               field: instrument_id
       
       - name: instrument_cashflow_type
-        description: "Type of cashflow - Enum: CONTRIBUTION, DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, DRAW, PREPAYMENT, OTHER"
+        description: "Type of cashflow - Enum: CONTRIBUTION, DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, DRAW, PREPAYMENT, OTHER, PURCHASE, SALE"
         tests:
           - not_null
           - accepted_values:
-              values: ['CONTRIBUTION', 'DISTRIBUTION', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER']
+              values: ['CONTRIBUTION', 'DISTRIBUTION', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER', 'PURCHASE', 'SALE']
       
       - name: date
         description: "Date of the cashflow"
@@ -417,6 +435,12 @@ models:
       - name: fx_rate
         description: "Foreign exchange rate used for conversion"
       
+      - name: fx_rate_as_of
+        description: "Date of the FX rate"
+      
+      - name: fx_rate_source
+        description: "Source of the FX rate"
+      
       - name: amount_converted
         description: "Amount converted to fund base currency"
       
@@ -429,6 +453,9 @@ models:
       
       - name: reference
         description: "Reference or description of the cashflow"
+      
+      - name: non_cash
+        description: "Indicates whether the cashflow is non-cash (default false)"
       
       - name: created_at
         description: "Timestamp when the cashflow record was created"

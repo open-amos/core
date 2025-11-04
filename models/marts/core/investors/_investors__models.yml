@@ -22,6 +22,13 @@ models:
               to: ref('dim_investor_types')
               field: investor_type_id
       
+      - name: domicile_country_code
+        description: "Investor domicile ISO2 country code - Foreign Key to dim_countries"
+        tests:
+          - relationships:
+              to: ref('dim_countries')
+              field: country_iso2_code
+      
       - name: created_at
         description: "Timestamp when the investor record was created"
       

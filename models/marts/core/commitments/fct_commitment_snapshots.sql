@@ -9,9 +9,12 @@ with commitment_snapshots as (
         frequency,
         reporting_basis,
         snapshot_source,
+        currency_code,
         total_commitment,
         total_drawdowns,
         total_distributions,
+        source,
+        source_reference,
         created_at,
         updated_at
     from {{ ref('int_commitment_snapshots_curated') }}

@@ -41,11 +41,6 @@ with credit_snapshots as (
             else null
         end as amortized_cost_converted,
         s.expected_loss,
-        case
-            when s.fx_rate is not null and s.expected_loss is not null
-            then s.expected_loss * s.fx_rate
-            else null
-        end as expected_loss_converted,
         s.status,
         current_timestamp as created_at,
         current_timestamp as updated_at

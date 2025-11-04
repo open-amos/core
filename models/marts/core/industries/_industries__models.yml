@@ -10,7 +10,7 @@ models:
           - unique
           - not_null
       
-      - name: canonical_name
+      - name: name
         description: "Canonical industry name"
         tests:
           - unique

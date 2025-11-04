@@ -9,6 +9,7 @@ with fund_snapshots as (
         frequency,
         reporting_basis,
         snapshot_source,
+        currency_code,
         committed_capital,
         called_capital,
         dpi,
@@ -18,10 +19,9 @@ with fund_snapshots as (
         total_distributions,
         total_expenses,
         total_management_fees,
-        total_loans_received,
-        principal_outstanding,
-        undrawn_commitment,
         total_interest_income,
+        source,
+        source_reference,
         created_at,
         updated_at
     from {{ ref('int_fund_snapshots_curated') }}

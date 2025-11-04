@@ -26,6 +26,19 @@ models:
               to: ref('dim_investors')
               field: investor_id
       
+      - name: currency_code
+        description: "Currency code for the commitment - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: original_amount
+        description: "Original committed amount"
+      
+      - name: agreement_date
+        description: "Commitment agreement date"
+      
       - name: created_at
         description: "Timestamp when the commitment record was created"
       
@@ -72,6 +85,13 @@ models:
           - accepted_values:
               values: ['ADMIN', 'INTERNAL']
       
+      - name: currency_code
+        description: "Currency code for the snapshot - Foreign Key to dim_currencies"
+        tests:
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
       - name: total_commitment
         description: "Total commitment amount"
       
@@ -81,42 +101,14 @@ models:
       - name: total_distributions
         description: "Total distributions to date"
       
+      - name: source
+        description: "Source system for the snapshot"
+      
+      - name: source_reference
+        description: "Source system reference"
+      
       - name: created_at
         description: "Timestamp when the snapshot record was created"
       
       - name: updated_at
         description: "Timestamp when the snapshot record was last updated"
-
-  - name: fct_commitment_records
-    description: "Fact table for commitment change history"
-    columns:
-      - name: commitment_record_id
-        description: "Unique commitment record identifier - Primary Key"
-        tests:
-          - unique
-          - not_null
-      
-      - name: commitment_id
-        description: "Commitment identifier - Foreign Key to dim_commitments"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('dim_commitments')
-              field: commitment_id
-      
-      - name: date_from
-        description: "Effective date of the commitment change"
-        tests:
-          - not_null
-      
-      - name: amount
-        description: "Commitment amount"
-      
-      - name: status
-        description: "Status of the commitment"
-      
-      - name: created_at
-        description: "Timestamp when the record was created"
-      
-      - name: updated_at
-        description: "Timestamp when the record was last updated"

@@ -7,7 +7,6 @@ with transactions as (
         fund_id,
         investor_id,
         instrument_id,
-        investment_round_id,
         facility_id,
         name,
         description,
@@ -20,6 +19,7 @@ with transactions as (
         date,
         source,
         reference,
+        source_reference,
         created_at,
         updated_at
     from {{ ref('int_transactions_classified') }}

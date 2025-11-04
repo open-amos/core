@@ -17,6 +17,8 @@ with funds as (
         target_commitment,
         incorporated_in,
         base_currency_code,
+        strategy,
+        final_close_date,
         created_at,
         updated_at
     from {{ ref('int_funds_unified') }}

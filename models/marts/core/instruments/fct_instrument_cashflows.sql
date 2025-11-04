@@ -9,9 +9,12 @@ with instrument_cashflows as (
         amount,
         currency_code,
         fx_rate,
+        fx_rate_as_of,
+        fx_rate_source,
         amount_converted,
         transaction_id,
         reference,
+        non_cash,
         created_at,
         updated_at
     from {{ ref('int_instrument_cashflows_curated') }}

@@ -107,6 +107,9 @@ models:
               to: ref('dim_industries')
               field: industry_id
       
+      - name: primary_flag
+        description: "Indicates if this is the primary industry for the opportunity"
+      
       - name: created_at
         description: "Timestamp when the relationship was created"
       
