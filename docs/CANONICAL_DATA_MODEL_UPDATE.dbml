@@ -472,25 +472,6 @@ Table "public"."company_industries" {
   Note: 'Optional: allocation_pct if you need multi-industry weights. Ensure no overlapping intervals; at most one primary per company among active rows.'
 }
 
-Table "public"."commitment_records" {
-  "commitment_record_id" varchar(64) [pk, not null]
-  "commitment_id" varchar(64) [not null, ref: < "public"."commitments"."commitment_id"]
-  "effective_date" date [not null]
-  "valid_to" date
-  "amount" numeric(20,2)
-  "status" varchar(64)
-  "reason" varchar(64)
-  "source" varchar(128)
-  "source_reference" varchar(400)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    commitment_id [name: "idx_commitment_record_commitment_id"]
-    (commitment_id, effective_date) [name: "idx_commitment_record_effective"]
-  }
-}
-
 Table "public"."company_countries" {
   "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "country_code" "char(2)" [not null, ref: < "public"."countries"."country_iso2_code"]
