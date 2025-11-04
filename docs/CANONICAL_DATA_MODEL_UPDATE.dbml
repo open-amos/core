@@ -523,7 +523,6 @@ Table "public"."facilities" {
   "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
   "borrower_company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "facility_type" facility_type [not null]
-  "agent_counterparty_id" varchar(64)
   "agreement_date" date [not null]
   "effective_date" date
   "maturity_date" date
@@ -621,7 +620,6 @@ Table "transactions" {
   "investor_id" varchar(64) [ref: < "public"."investors"."investor_id"]
   "facility_id" varchar(64) [ref: < "public"."facilities"."facility_id"]
   "instrument_id" varchar(64) [ref: < "public"."instruments"."instrument_id"]
-  "counterparty_id" varchar(64)
   "amount" numeric(24,2) [not null]
   "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
   "fx_rate" numeric(18,8)
