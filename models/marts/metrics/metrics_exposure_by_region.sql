@@ -5,29 +5,14 @@
     )
 }}
 
--- Time-series exposure with country, region, fund, and stage breakdowns
--- Grain: one row per country per region per month per fund per stage
-with latest_fx_rates as (
-    select
-        quote_currency,
-        exchange_rate,
-        row_number() over (partition by quote_currency order by rate_date desc) as rn
-    from {{ ref('stg_ref__fx_rates') }}
-    where base_currency = 'USD'
-),
-
-latest_fx_rates_filtered as (
-    select quote_currency, exchange_rate
-    from latest_fx_rates
-    where rn = 1
-),
-
-latest_instrument_snapshots as (
+with latest_instrument_snapshots as (
     select
         snap.instrument_id,
         snap.period_end_date,
         snap.fair_value,
+        snap.fair_value_converted,
         snap.currency_code,
+        snap.fx_rate,
         row_number() over (partition by snap.instrument_id order by snap.period_end_date desc) as rn
     from {{ ref('fct_instrument_snapshots') }} snap
     inner join {{ ref('dim_instruments') }} inst on snap.instrument_id = inst.instrument_id
@@ -37,12 +22,12 @@ deployed_capital_by_instrument as (
     select
         lis.instrument_id,
         lis.period_end_date,
-        case
-            when lis.currency_code = 'USD' then coalesce(lis.fair_value, 0)
-            else coalesce(lis.fair_value, 0) / coalesce(fx.exchange_rate, 1.0)
-        end as fair_value_usd
+        coalesce(lis.fair_value_converted,
+                 case
+                     when lis.fx_rate is not null then coalesce(lis.fair_value, 0) * lis.fx_rate
+                     else coalesce(lis.fair_value, 0)
+                 end) as fair_value_usd
     from latest_instrument_snapshots lis
-    left join latest_fx_rates_filtered fx on lis.currency_code = fx.quote_currency
     where lis.rn = 1 and lis.fair_value is not null
 ),
 

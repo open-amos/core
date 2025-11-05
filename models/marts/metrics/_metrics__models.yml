@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: mrt_exposure_by_region
+  - name: metrics_exposure_by_region
     description: |
       BI-ready time-series metrics model showing cumulative growing exposure by region over time,
       with breakdowns by fund and pipeline stage. Displays deployed capital (baseline) plus 
@@ -25,7 +25,7 @@ models:
         exposure_month,
         region,
         total_exposure_usd
-      FROM mrt_exposure_by_region
+      FROM metrics_exposure_by_region
       WHERE region = 'Europe'
         AND fund_id = 'ALL'
         AND stage_id = 'ALL'
@@ -37,7 +37,7 @@ models:
         region,
         fund_name,
         total_exposure_usd
-      FROM mrt_exposure_by_region
+      FROM metrics_exposure_by_region
       WHERE fund_id = 'FUND123'
         AND stage_id = 'ALL'
       ORDER BY exposure_month;
@@ -108,7 +108,7 @@ models:
       - name: as_of_date
         description: "Date of the latest snapshot used for deployed capital calculations"
 
-  - name: mrt_exposure_by_industry
+  - name: metrics_exposure_by_industry
     description: |
       BI-ready metrics model combining deployed capital from portfolio positions with pipeline value 
       from CRM opportunities to show total exposure by industry. Demonstrates sector diversification 
@@ -132,7 +132,7 @@ models:
         deployed_capital_usd,
         pipeline_value_usd,
         total_exposure_usd
-      FROM mrt_exposure_by_industry
+      FROM metrics_exposure_by_industry
       ORDER BY total_exposure_usd DESC;
       ```
     columns:
@@ -184,7 +184,7 @@ models:
         tests:
           - not_null
 
-  - name: mrt_fund_performance_latest
+  - name: metrics_fund_performance_latest
     description: |
       BI-ready metrics model providing a single-row-per-fund snapshot of key performance indicators.
       Combines data from fund administration (commitments, capital calls, distributions) with 
@@ -210,7 +210,7 @@ models:
         current_nav,
         dpi,
         tvpi
-      FROM mrt_fund_performance_latest
+      FROM metrics_fund_performance_latest
       ORDER BY tvpi DESC;
       ```
     columns:
@@ -284,7 +284,7 @@ models:
         tests:
           - not_null
 
-  - name: mrt_pipeline_by_stage
+  - name: metrics_pipeline_by_stage
     description: |
       BI-ready metrics model aggregating CRM opportunities by deal stage to show pipeline health 
       and forecast future deployment. Enables funnel analysis and deal velocity tracking.
@@ -308,7 +308,7 @@ models:
         total_amount_usd,
         avg_deal_size_usd,
         oldest_deal_days
-      FROM mrt_pipeline_by_stage
+      FROM metrics_pipeline_by_stage
       ORDER BY fund_name, stage_order;
       ```
     columns:
@@ -374,7 +374,7 @@ models:
         tests:
           - not_null
 
-  - name: mrt_company_financials_trend
+  - name: metrics_company_financials_trend
     description: |
       BI-ready metrics model providing time-series financial metrics for portfolio companies.
       Enables tracking of operating performance, growth rates, and margin trends over time.
@@ -399,7 +399,7 @@ models:
         ebitda_usd,
         ebitda_margin_pct,
         revenue_growth_pct
-      FROM mrt_company_financials_trend
+      FROM metrics_company_financials_trend
       WHERE company_id = 'COMP123'
       ORDER BY period_end_date;
       ```
@@ -470,7 +470,7 @@ models:
           - accepted_values:
               values: ['PM']
 
-  - name: mrt_investment_activity_monthly
+  - name: metrics_investment_activity_monthly
     description: |
       BI-ready metrics model showing monthly transaction activity by type to understand cash flow 
       patterns and deployment pace. Aggregates all transaction types from accounting and fund admin.
@@ -492,7 +492,7 @@ models:
         activity_month,
         transaction_type,
         SUM(total_amount_usd) as total_amount
-      FROM mrt_investment_activity_monthly
+      FROM metrics_investment_activity_monthly
       WHERE fund_id = 'FUND123'
       GROUP BY activity_year, activity_month, transaction_type
       ORDER BY activity_month;
@@ -548,7 +548,7 @@ models:
         tests:
           - not_null
 
-  - name: mrt_loan_portfolio_summary
+  - name: metrics_loan_portfolio_summary
     description: |
       BI-ready metrics model aggregating loan portfolio metrics for debt-focused funds. Provides
       weighted average rates, maturity profile, and utilization metrics.
@@ -573,7 +573,7 @@ models:
         total_outstanding_usd,
         weighted_avg_rate_pct,
         utilization_pct
-      FROM mrt_loan_portfolio_summary
+      FROM metrics_loan_portfolio_summary
       ORDER BY fund_name, maturity_year;
       ```
     columns:
