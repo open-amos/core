@@ -110,79 +110,103 @@ models:
 
   - name: metrics_exposure_by_industry
     description: |
-      BI-ready metrics model combining deployed capital from portfolio positions with pipeline value 
-      from CRM opportunities to show total exposure by industry. Demonstrates sector diversification 
-      and concentration across the portfolio.
+      BI-ready time-series metrics model showing cumulative exposure by industry over time,
+      combining deployed capital from portfolio instruments with cumulative pipeline from CRM 
+      opportunities. Includes "All Funds" and "All Stages" aggregations for flexible filtering in BI tools.
       
-      **Grain**: One row per industry
+      **Grain**: One row per industry per month per fund per stage
       
       **Source Systems**: Portfolio Management (PM), CRM
       
       **Use Cases**:
-      - Sector concentration analysis
-      - Industry exposure bar charts
-      - Sector allocation pie charts
-      - Industry hierarchy drill-down (sector → subsector)
+      - Industry exposure growth forecasting by fund
+      - Pipeline stage analysis by industry
+      - Sector concentration monitoring across funds
+      - Cross-fund comparisons within a single industry
       
       **Example Query**:
       ```sql
+      -- All funds, all stages for an industry
       SELECT 
-        sector,
+        exposure_month,
         industry_name,
-        deployed_capital_usd,
-        pipeline_value_usd,
         total_exposure_usd
       FROM metrics_exposure_by_industry
-      ORDER BY total_exposure_usd DESC;
+      WHERE industry_name = 'Software'
+        AND fund_id = 'ALL'
+        AND stage_id = 'ALL'
+      ORDER BY exposure_month;
       ```
     columns:
-      - name: industry_id
-        description: "Unique industry identifier - Primary Key"
+      - name: exposure_month
+        description: "First day of the month for the exposure data"
         tests:
-          - unique
+          - not_null
+      
+      - name: exposure_year
+        description: "Year extracted from exposure_month"
+        tests:
+          - not_null
+      
+      - name: exposure_month_num
+        description: "Month number (1-12) extracted from exposure_month"
+        tests:
+          - not_null
+      
+      - name: industry_id
+        description: "Industry identifier or 'UNKNOWN'/'ALL' for aggregated views"
+        tests:
           - not_null
       
       - name: industry_name
-        description: "Human-readable industry name from canonical dimension"
+        description: "Industry name or 'All Industries' for aggregated view"
         tests:
           - not_null
       
-      - name: sector
-        description: "Top-level sector classification for grouping"
+      - name: fund_id
+        description: "Fund identifier or 'ALL' for aggregated view across all funds"
+        tests:
+          - not_null
       
-      - name: subsector
-        description: "Second-level subsector classification for drill-down"
+      - name: fund_name
+        description: "Fund name or 'All Funds' for aggregated view"
+        tests:
+          - not_null
+      
+      - name: stage_id
+        description: "Pipeline stage identifier or 'ALL' for aggregated view across all stages"
+        tests:
+          - not_null
+      
+      - name: stage_name
+        description: "Pipeline stage name or 'All Stages' for aggregated view"
+        tests:
+          - not_null
       
       - name: deployed_capital_usd
-        description: "Total deployed capital from current instrument positions, converted to USD"
+        description: "Current deployed capital from instrument positions for this fund and industry, converted to USD"
         tests:
           - not_null
       
-      - name: pipeline_value_usd
-        description: "Total pipeline value from active CRM opportunities, converted to USD"
+      - name: closed_pipeline_usd
+        description: "Cumulative sum of opportunities (for this fund and stage) that have closed up to and including this month, converted to USD"
         tests:
           - not_null
       
       - name: total_exposure_usd
-        description: "Sum of deployed capital and pipeline value"
+        description: "Sum of deployed capital and cumulative closed pipeline (shows total exposure growing over time)"
         tests:
           - not_null
       
-      - name: deployed_pct
-        description: "Deployed capital as percentage of total exposure"
-      
-      - name: pipeline_pct
-        description: "Pipeline value as percentage of total exposure"
-      
-      - name: source_systems
-        description: "Comma-separated list of contributing source systems (e.g., 'PM, CRM')"
+      - name: period_type
+        description: "Indicates if the month is 'Current', 'Historical', or 'Forecast'"
         tests:
           - not_null
+          - accepted_values:
+              values: ['Current', 'Historical', 'Forecast']
       
       - name: as_of_date
         description: "Date of the latest snapshot used for deployed capital calculations"
-        tests:
-          - not_null
 
   - name: metrics_fund_performance_latest
     description: |
