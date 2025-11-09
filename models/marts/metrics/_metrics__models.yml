@@ -114,9 +114,7 @@ models:
         description: "Pipeline stage identifier or NULL for deployed capital rows"
       
       - name: stage_name
-        description: "Pipeline stage name or 'All Stages' for deployed capital rows"
-        tests:
-          - not_null
+        description: "Pipeline stage name or NULL for deployed capital rows"
       
       - name: deployed_capital_usd
         description: "Current deployed capital from instrument positions, converted to USD (allocated by country and industry)"
