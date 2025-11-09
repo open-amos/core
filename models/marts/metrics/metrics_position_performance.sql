@@ -105,6 +105,7 @@ instrument_distributions as (
 position_metrics as (
     select
         i.instrument_id,
+        i.instrument_name,
         cv.period_end_date,
         f.fund_id,
         f.fund_name,
