@@ -856,6 +856,11 @@ models:
               to: ref('dim_instruments')
               field: instrument_id
       
+      - name: instrument_name
+        description: "Instrument name from canonical dimension"
+        tests:
+          - not_null
+      
       - name: period_end_date
         description: "End date of the latest valuation snapshot (part of unique key)"
         tests:

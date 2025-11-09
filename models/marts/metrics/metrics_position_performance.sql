@@ -141,6 +141,7 @@ position_metrics as (
 final_metrics as (
     select
         instrument_id,
+        instrument_name,
         period_end_date,
         fund_id,
         fund_name,
