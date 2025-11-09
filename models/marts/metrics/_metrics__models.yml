@@ -1222,3 +1222,129 @@ models:
         description: "Date when metrics were calculated"
         tests:
           - not_null
+
+  - name: metrics_company_performance
+    description: |
+      Company-level financial performance metrics aligned with ILPA reporting standards. Provides
+      comprehensive financial metrics including revenue, profitability, balance sheet items, and 
+      valuation multiples. Combines company financials with valuations and geographic/industry 
+      classifications to deliver a complete view of portfolio company performance over time.
+      
+      **Grain**: One row per company per period_end_date
+      
+      **Source Systems**: Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Portfolio company financial performance tracking
+      - Revenue and EBITDA trend analysis
+      - Valuation multiple monitoring (EV/EBITDA, EV/Revenue)
+      - Balance sheet health assessment
+      - Geographic and industry exposure analysis
+      - Company-level benchmarking and comparison
+      
+      **Example Query**:
+      ```sql
+      -- Latest company performance metrics
+      SELECT 
+        company_name,
+        period_end_date,
+        revenue,
+        ebitda,
+        ebitda_margin,
+        enterprise_value,
+        ev_to_ebitda,
+        primary_country,
+        primary_industry
+      FROM metrics_company_performance
+      WHERE period_end_date = (SELECT MAX(period_end_date) FROM metrics_company_performance)
+      ORDER BY revenue DESC;
+      
+      -- Company performance trend over time
+      SELECT 
+        period_end_date,
+        company_name,
+        revenue,
+        ebitda,
+        ebitda_margin
+      FROM metrics_company_performance
+      WHERE company_id = 'COMP123'
+      ORDER BY period_end_date;
+      ```
+    tags: ['ilpa']
+    columns:
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies (part of unique key)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: company_name
+        description: "Company name from canonical dimension"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: period_end_date
+        description: "End date of the financial reporting period (part of unique key)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: revenue
+        description: "Total revenue for the period from company financials"
+        tags: ['ilpa']
+      
+      - name: ebitda
+        description: "Earnings before interest, taxes, depreciation, and amortization from company financials"
+        tags: ['ilpa']
+      
+      - name: ebitda_margin
+        description: "EBITDA margin as percentage = (ebitda / revenue) * 100 with NULLIF protection"
+        tags: ['ilpa']
+      
+      - name: cash
+        description: "Cash and cash equivalents from company financials"
+        tags: ['ilpa']
+      
+      - name: total_assets
+        description: "Total assets from company financials"
+        tags: ['ilpa']
+      
+      - name: total_liabilities
+        description: "Total liabilities from company financials"
+        tags: ['ilpa']
+      
+      - name: equity
+        description: "Total equity from company financials"
+        tags: ['ilpa']
+      
+      - name: net_debt
+        description: "Net debt = total_liabilities - cash"
+        tags: ['ilpa']
+      
+      - name: enterprise_value
+        description: "Enterprise value from latest actual valuation for the period"
+        tags: ['ilpa']
+      
+      - name: ev_to_ebitda
+        description: "Enterprise value to EBITDA multiple = enterprise_value / ebitda with NULLIF protection"
+        tags: ['ilpa']
+      
+      - name: ev_to_revenue
+        description: "Enterprise value to revenue multiple = enterprise_value / revenue with NULLIF protection"
+        tags: ['ilpa']
+      
+      - name: primary_country
+        description: "Primary country from br_company_countries where primary_flag is TRUE with temporal validity check"
+        tags: ['ilpa']
+      
+      - name: primary_industry
+        description: "Primary industry from br_company_industries where primary_flag is TRUE with temporal validity check"
+        tags: ['ilpa']
+      
+      - name: reporting_currency
+        description: "Currency code for the financial data from company financials"
+        tags: ['ilpa']
