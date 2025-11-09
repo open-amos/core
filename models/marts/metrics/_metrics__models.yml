@@ -1078,3 +1078,147 @@ models:
         tags: ['ilpa']
         tests:
           - not_null
+
+  - name: metrics_fund_performance
+    description: |
+      Fund-level performance metrics aligned with ILPA reporting standards. Provides comprehensive
+      fund performance indicators including NAV, commitment metrics, return multiples, portfolio 
+      composition, and credit exposure. Combines fund snapshots with aggregated instrument valuations
+      to deliver a complete view of fund performance over time.
+      
+      **Grain**: One row per fund per period_end_date
+      
+      **Source Systems**: Fund Administration (ADMIN), Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Fund performance dashboards and scorecards
+      - TVPI, DPI, and RVPI tracking over time
+      - Commitment and deployment analysis
+      - Portfolio composition monitoring (company and position counts)
+      - Credit exposure and utilization tracking
+      - Fund-level NAV reconciliation
+      
+      **Example Query**:
+      ```sql
+      -- Latest fund performance metrics
+      SELECT 
+        fund_name,
+        period_end_date,
+        fund_nav,
+        total_commitments,
+        unfunded_commitment,
+        tvpi,
+        dpi,
+        rvpi,
+        number_of_portfolio_companies,
+        number_of_positions
+      FROM metrics_fund_performance
+      WHERE period_end_date = (SELECT MAX(period_end_date) FROM metrics_fund_performance)
+      ORDER BY fund_name;
+      
+      -- Fund performance trend over time
+      SELECT 
+        period_end_date,
+        fund_name,
+        fund_nav,
+        tvpi,
+        dpi
+      FROM metrics_fund_performance
+      WHERE fund_id = 'FUND123'
+      ORDER BY period_end_date;
+      ```
+    tags: ['ilpa']
+    columns:
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds (part of unique key)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: period_end_date
+        description: "End date of the reporting period (part of unique key)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: fund_nav
+        description: "Fund Net Asset Value = sum of instrument fair values + fund cash amount"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: total_commitments
+        description: "Total committed capital from investor commitments"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: total_called_capital
+        description: "Total called capital from capital call transactions"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: unfunded_commitment
+        description: "Unfunded commitment = total_commitments - total_called_capital"
+        tags: ['ilpa']
+      
+      - name: total_distributions
+        description: "Total distributions to investors"
+        tags: ['ilpa']
+      
+      - name: dpi
+        description: "Distributions to Paid-In capital ratio (DPI)"
+        tags: ['ilpa']
+      
+      - name: rvpi
+        description: "Residual Value to Paid-In capital ratio (RVPI)"
+        tags: ['ilpa']
+      
+      - name: tvpi
+        description: "Total Value to Paid-In capital ratio = DPI + RVPI"
+        tags: ['ilpa']
+      
+      - name: expected_coc
+        description: "Expected cash-on-cash return"
+        tags: ['ilpa']
+      
+      - name: number_of_portfolio_companies
+        description: "Count of distinct portfolio companies with active instruments"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: number_of_positions
+        description: "Count of distinct active instruments"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: lines_of_credit_outstanding
+        description: "Total principal outstanding from credit instrument snapshots"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: peak_outstanding_credit
+        description: "Peak outstanding credit calculated using window function with UNBOUNDED PRECEDING"
+        tags: ['ilpa']
+      
+      - name: interest_income
+        description: "Total interest income from fund snapshots"
+        tags: ['ilpa']
+      
+      - name: as_of_date
+        description: "Date when metrics were calculated"
+        tests:
+          - not_null
