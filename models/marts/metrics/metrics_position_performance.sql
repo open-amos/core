@@ -2,11 +2,11 @@
     config(
         materialized='table',
         unique_key=['instrument_id', 'period_end_date'],
-        tags=['marts', 'metrics', 'ilpa']
+        tags=['marts', 'metrics']
     )
 }}
 
--- Position-level investment performance metrics aligned with ILPA reporting standards
+-- Position-level investment performance metrics
 -- Grain: One row per instrument per period_end_date
 
 with instruments as (

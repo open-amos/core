@@ -803,10 +803,9 @@ models:
 
   - name: metrics_position_performance
     description: |
-      Position-level investment performance metrics aligned with ILPA reporting standards.
-      Provides comprehensive returns analysis including MOIC, IRR, and cashflow metrics for each 
-      investment position. Combines valuation snapshots with cashflow history to calculate 
-      realized and unrealized returns.
+      Position-level investment performance metrics providing comprehensive returns analysis 
+      including MOIC, IRR, and cashflow metrics for each investment position. Combines valuation 
+      snapshots with cashflow history to calculate realized and unrealized returns.
       
       **Grain**: One row per instrument per period_end_date (latest snapshot)
       
@@ -848,11 +847,9 @@ models:
       FROM metrics_position_performance
       GROUP BY fund_name;
       ```
-    tags: ['ilpa']
     columns:
       - name: instrument_id
         description: "Instrument identifier - Foreign Key to dim_instruments (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -861,13 +858,11 @@ models:
       
       - name: period_end_date
         description: "End date of the latest valuation snapshot (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: fund_id
         description: "Fund identifier - Foreign Key to dim_funds"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -876,7 +871,6 @@ models:
       
       - name: fund_name
         description: "Fund name from canonical dimension"
-        tags: ['ilpa']
         tests:
           - not_null
       
@@ -897,69 +891,57 @@ models:
       
       - name: initial_investment_date
         description: "Date of initial investment (inception_date from dim_instruments)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: exit_date
         description: "Date of exit/termination if applicable (termination_date from dim_instruments)"
-        tags: ['ilpa']
       
       - name: initial_cost
         description: "Initial cost basis of the investment, converted to fund base currency"
-        tags: ['ilpa']
       
       - name: cumulative_invested
         description: "Total capital invested through contributions, purchases, and draws (always positive)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: realized_proceeds
         description: "Total proceeds received through sales, distributions, dividends, principal, and prepayments (always positive)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: current_fair_value
         description: "Current fair market value from latest instrument snapshot"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: total_value
         description: "Total value = realized_proceeds + current_fair_value (TVPI numerator)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: gross_moic
         description: "Gross Multiple on Invested Capital = total_value / cumulative_invested (TVPI)"
-        tags: ['ilpa']
       
       - name: gross_irr
         description: "Gross Internal Rate of Return approximation using POWER function: (MOIC^(1/holding_period_years)) - 1"
-        tags: ['ilpa']
       
       - name: ownership_pct_initial
         description: "Initial ownership percentage from dim_instruments_equity"
-        tags: ['ilpa']
       
       - name: ownership_pct_current
         description: "Current ownership percentage from latest equity snapshot"
-        tags: ['ilpa']
       
       - name: holding_period_years
         description: "Holding period in years from inception_date to exit_date (or current date if not exited)"
-        tags: ['ilpa']
         tests:
           - not_null
 
   - name: metrics_returns_cashflows
     description: |
-      Standardized cashflow-level view for IRR and returns analysis aligned with ILPA reporting standards.
-      Provides a complete transaction history with direction classification and signed amounts for 
-      time-weighted return calculations.
+      Standardized cashflow-level view for IRR and returns analysis. Provides a complete 
+      transaction history with direction classification and signed amounts for time-weighted 
+      return calculations.
       
       **Grain**: One row per cashflow transaction (fund_id, instrument_id, cashflow_date, cashflow_type)
       
@@ -993,11 +975,9 @@ models:
       WHERE instrument_id = 'INST123'
       ORDER BY cashflow_date;
       ```
-    tags: ['ilpa']
     columns:
       - name: fund_id
         description: "Fund identifier - Foreign Key to dim_funds"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -1006,13 +986,11 @@ models:
       
       - name: fund_name
         description: "Fund name from canonical dimension"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: instrument_id
         description: "Instrument identifier - Foreign Key to dim_instruments"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -1036,13 +1014,11 @@ models:
       
       - name: cashflow_date
         description: "Date of the cashflow transaction"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: cashflow_type
         description: "Type of cashflow - CONTRIBUTION, PURCHASE, DRAW (outflows) or DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, PREPAYMENT, SALE, OTHER (inflows)"
-        tags: ['ilpa']
         tests:
           - not_null
           - accepted_values:
@@ -1050,7 +1026,6 @@ models:
       
       - name: cashflow_amount
         description: "Cashflow amount in fund base currency (always positive, use direction or signed_amount for IRR calculations)"
-        tags: ['ilpa']
         tests:
           - not_null
       
@@ -1067,7 +1042,6 @@ models:
       
       - name: direction
         description: "Cashflow direction - 'outflow' for investments (CONTRIBUTION, PURCHASE, DRAW) or 'inflow' for returns (all other types)"
-        tags: ['ilpa']
         tests:
           - not_null
           - accepted_values:
@@ -1075,16 +1049,15 @@ models:
       
       - name: signed_amount
         description: "Signed cashflow amount for IRR calculations - negative for outflows, positive for inflows"
-        tags: ['ilpa']
         tests:
           - not_null
 
   - name: metrics_fund_performance
     description: |
-      Fund-level performance metrics aligned with ILPA reporting standards. Provides comprehensive
-      fund performance indicators including NAV, commitment metrics, return multiples, portfolio 
-      composition, and credit exposure. Combines fund snapshots with aggregated instrument valuations
-      to deliver a complete view of fund performance over time.
+      Fund-level performance metrics providing comprehensive fund performance indicators including 
+      NAV, commitment metrics, return multiples, portfolio composition, and credit exposure. 
+      Combines fund snapshots with aggregated instrument valuations to deliver a complete view 
+      of fund performance over time.
       
       **Grain**: One row per fund per period_end_date
       
@@ -1127,11 +1100,9 @@ models:
       WHERE fund_id = 'FUND123'
       ORDER BY period_end_date;
       ```
-    tags: ['ilpa']
     columns:
       - name: fund_id
         description: "Fund identifier - Foreign Key to dim_funds (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -1140,83 +1111,67 @@ models:
       
       - name: fund_name
         description: "Fund name from canonical dimension"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: period_end_date
         description: "End date of the reporting period (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: fund_nav
         description: "Fund Net Asset Value = sum of instrument fair values + fund cash amount"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: total_commitments
         description: "Total committed capital from investor commitments"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: total_called_capital
         description: "Total called capital from capital call transactions"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: unfunded_commitment
         description: "Unfunded commitment = total_commitments - total_called_capital"
-        tags: ['ilpa']
       
       - name: total_distributions
         description: "Total distributions to investors"
-        tags: ['ilpa']
       
       - name: dpi
         description: "Distributions to Paid-In capital ratio (DPI)"
-        tags: ['ilpa']
       
       - name: rvpi
         description: "Residual Value to Paid-In capital ratio (RVPI)"
-        tags: ['ilpa']
       
       - name: tvpi
         description: "Total Value to Paid-In capital ratio = DPI + RVPI"
-        tags: ['ilpa']
       
       - name: expected_coc
         description: "Expected cash-on-cash return"
-        tags: ['ilpa']
       
       - name: number_of_portfolio_companies
         description: "Count of distinct portfolio companies with active instruments"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: number_of_positions
         description: "Count of distinct active instruments"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: lines_of_credit_outstanding
         description: "Total principal outstanding from credit instrument snapshots"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: peak_outstanding_credit
         description: "Peak outstanding credit calculated using window function with UNBOUNDED PRECEDING"
-        tags: ['ilpa']
       
       - name: interest_income
         description: "Total interest income from fund snapshots"
-        tags: ['ilpa']
       
       - name: as_of_date
         description: "Date when metrics were calculated"
@@ -1225,10 +1180,10 @@ models:
 
   - name: metrics_company_performance
     description: |
-      Company-level financial performance metrics aligned with ILPA reporting standards. Provides
-      comprehensive financial metrics including revenue, profitability, balance sheet items, and 
-      valuation multiples. Combines company financials with valuations and geographic/industry 
-      classifications to deliver a complete view of portfolio company performance over time.
+      Company-level financial performance metrics providing comprehensive financial metrics 
+      including revenue, profitability, balance sheet items, and valuation multiples. Combines 
+      company financials with valuations and geographic/industry classifications to deliver a 
+      complete view of portfolio company performance over time.
       
       **Grain**: One row per company per period_end_date
       
@@ -1270,11 +1225,9 @@ models:
       WHERE company_id = 'COMP123'
       ORDER BY period_end_date;
       ```
-    tags: ['ilpa']
     columns:
       - name: company_id
         description: "Company identifier - Foreign Key to dim_companies (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
           - relationships:
@@ -1283,68 +1236,52 @@ models:
       
       - name: company_name
         description: "Company name from canonical dimension"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: period_end_date
         description: "End date of the financial reporting period (part of unique key)"
-        tags: ['ilpa']
         tests:
           - not_null
       
       - name: revenue
         description: "Total revenue for the period from company financials"
-        tags: ['ilpa']
       
       - name: ebitda
         description: "Earnings before interest, taxes, depreciation, and amortization from company financials"
-        tags: ['ilpa']
       
       - name: ebitda_margin
         description: "EBITDA margin as percentage = (ebitda / revenue) * 100 with NULLIF protection"
-        tags: ['ilpa']
       
       - name: cash
         description: "Cash and cash equivalents from company financials"
-        tags: ['ilpa']
       
       - name: total_assets
         description: "Total assets from company financials"
-        tags: ['ilpa']
       
       - name: total_liabilities
         description: "Total liabilities from company financials"
-        tags: ['ilpa']
       
       - name: equity
         description: "Total equity from company financials"
-        tags: ['ilpa']
       
       - name: net_debt
         description: "Net debt = total_liabilities - cash"
-        tags: ['ilpa']
       
       - name: enterprise_value
         description: "Enterprise value from latest actual valuation for the period"
-        tags: ['ilpa']
       
       - name: ev_to_ebitda
         description: "Enterprise value to EBITDA multiple = enterprise_value / ebitda with NULLIF protection"
-        tags: ['ilpa']
       
       - name: ev_to_revenue
         description: "Enterprise value to revenue multiple = enterprise_value / revenue with NULLIF protection"
-        tags: ['ilpa']
       
       - name: primary_country
         description: "Primary country from br_company_countries where primary_flag is TRUE with temporal validity check"
-        tags: ['ilpa']
       
       - name: primary_industry
         description: "Primary industry from br_company_industries where primary_flag is TRUE with temporal validity check"
-        tags: ['ilpa']
       
       - name: reporting_currency
         description: "Currency code for the financial data from company financials"
-        tags: ['ilpa']

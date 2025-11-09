@@ -2,7 +2,7 @@
     config(
         materialized='table',
         unique_key=['fund_id', 'instrument_id', 'cashflow_date', 'cashflow_type'],
-        tags=['marts', 'metrics', 'ilpa']
+        tags=['marts', 'metrics']
     )
 }}
 

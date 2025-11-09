@@ -2,11 +2,11 @@
     config(
         materialized='table',
         unique_key=['company_id', 'period_end_date'],
-        tags=['marts', 'metrics', 'ilpa']
+        tags=['marts', 'metrics']
     )
 }}
 
--- Company-level financial performance metrics aligned with ILPA reporting standards
+-- Company-level financial performance metrics
 -- Grain: One row per company per period_end_date
 
 with companies as (

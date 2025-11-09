@@ -2,11 +2,11 @@
     config(
         materialized='table',
         unique_key=['fund_id', 'period_end_date'],
-        tags=['marts', 'metrics', 'ilpa']
+        tags=['marts', 'metrics']
     )
 }}
 
--- Fund-level performance metrics aligned with ILPA reporting standards
+-- Fund-level performance metrics
 -- Grain: One row per fund per period_end_date
 
 with funds as (
