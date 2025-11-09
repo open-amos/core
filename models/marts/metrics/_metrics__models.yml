@@ -800,3 +800,127 @@ models:
         description: "Date of the latest loan snapshot"
         tests:
           - not_null
+
+  - name: metrics_returns_cashflows
+    description: |
+      Standardized cashflow-level view for IRR and returns analysis aligned with ILPA reporting standards.
+      Provides a complete transaction history with direction classification and signed amounts for 
+      time-weighted return calculations.
+      
+      **Grain**: One row per cashflow transaction (fund_id, instrument_id, cashflow_date, cashflow_type)
+      
+      **Source Systems**: Portfolio Management (PM), Fund Administration (ADMIN)
+      
+      **Use Cases**:
+      - IRR calculations using XIRR methodology
+      - Cashflow timeline visualizations
+      - Investment vs distribution analysis
+      - Fund-level cashflow aggregation
+      - Position-level returns analysis
+      
+      **Example Query**:
+      ```sql
+      -- Cashflow summary by fund and direction
+      SELECT 
+        fund_name,
+        direction,
+        COUNT(*) as transaction_count,
+        SUM(cashflow_amount) as total_amount
+      FROM metrics_returns_cashflows
+      WHERE cashflow_date >= '2023-01-01'
+      GROUP BY fund_name, direction
+      ORDER BY fund_name, direction;
+      
+      -- IRR calculation input for a specific instrument
+      SELECT 
+        cashflow_date,
+        signed_amount
+      FROM metrics_returns_cashflows
+      WHERE instrument_id = 'INST123'
+      ORDER BY cashflow_date;
+      ```
+    tags: ['ilpa']
+    columns:
+      - name: fund_id
+        description: "Fund identifier - Foreign Key to dim_funds"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_funds')
+              field: fund_id
+      
+      - name: fund_name
+        description: "Fund name from canonical dimension"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: instrument_id
+        description: "Instrument identifier - Foreign Key to dim_instruments"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instruments')
+              field: instrument_id
+      
+      - name: instrument_name
+        description: "Instrument name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: company_id
+        description: "Company identifier - Foreign Key to dim_companies"
+        tests:
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      
+      - name: company_name
+        description: "Company name from canonical dimension"
+      
+      - name: cashflow_date
+        description: "Date of the cashflow transaction"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: cashflow_type
+        description: "Type of cashflow - CONTRIBUTION, PURCHASE, DRAW (outflows) or DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, PREPAYMENT, SALE, OTHER (inflows)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['CONTRIBUTION', 'DISTRIBUTION', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER', 'PURCHASE', 'SALE']
+      
+      - name: cashflow_amount
+        description: "Cashflow amount in fund base currency (always positive, use direction or signed_amount for IRR calculations)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+      
+      - name: currency_code
+        description: "Original currency code of the cashflow - Foreign Key to dim_currencies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_currencies')
+              field: currency_code
+      
+      - name: fx_rate
+        description: "Foreign exchange rate used for conversion to fund base currency"
+      
+      - name: direction
+        description: "Cashflow direction - 'outflow' for investments (CONTRIBUTION, PURCHASE, DRAW) or 'inflow' for returns (all other types)"
+        tags: ['ilpa']
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['outflow', 'inflow']
+      
+      - name: signed_amount
+        description: "Signed cashflow amount for IRR calculations - negative for outflows, positive for inflows"
+        tags: ['ilpa']
+        tests:
+          - not_null
