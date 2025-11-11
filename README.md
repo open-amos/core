@@ -1,53 +1,48 @@
-### AMOS Core (dbt project)
+# AMOS
 
-Private markets teams often live with different versions of the truth—numbers vary between CRM exports, fund admin portals, and spreadsheet models. AMOS Core gives you a single, reliable foundation for performance, exposure, and operations. It standardizes how funds, portfolios, deals, accounts, and legal entities fit together so everyone asks—and answers—the same questions with the same data. Use it to ship reports and dashboards faster, gain better insights, and power AI assistants on trusted tables.
+![image](https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge) ![image](https://img.shields.io/badge/status-proof--of--concept-yellow?style=for-the-badge) ![image](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white)
 
-### The problem this solves
+---
+[Overview](../) | [Starter](../starter) | **Core** | [Source Example](../source-example) | [Dashboard](../dashboard-example)
 
-- One question, many answers: metrics differ across spreadsheets and systems
-- Slow time-to-insight: every dashboard requires bespoke wrangling
-- Hard to scale: each new fund, region, or system multiplies complexity
+---
 
-### How it works
+# AMOS Core 
 
-1. Connect your existing systems and files
-2. Align key fields to AMOS standard entities
-3. Run AMOS Core to build clean, consistent tables
-4. Use your preferred tools (dashboards, notebooks, apps) on those tables
+AMOS Core is a dbt project providing a canonical model, curated marts and BI-ready metrics for private markets, to be used in conjunction with source connectors like [AMOS Source Example](../source-example). It is the central piece of the [AMOS data stack](../).
 
-### Quickstart
+## Quick Start
 
-```bash
-cd amos_core
-dbt deps
-dbt seed
-dbt build
-```
+Install and run [Amos Starter](https://github.com/open-amos/starter) (recommended) or add [AMOS Core](https://github.com/open-amos/core) as a dependency to your dbt project.
 
-### What you get
+## Contents
 
-- Standardized tables for funds, portfolios, deals, accounts, and entities
-- Consistent keys and KPI definitions
-- Reference data for harmonization and lookups
+- **Models**: Canonical model, curated marts and BI-ready metrics for private markets.
+- **Documentation and tests** for the core models.
 
-### What’s inside
+### Canonical Model
 
-- Models: curated marts in `models/marts/core`
-- Seeds: reference tables in `seeds/`
+The canonical model is stored in the `models/core` directory. It is organized by entity and includes companies, funds, investors, instruments, transactions, facilities, loans, share_classes, commitments, opportunities, snapshots, and cashflows.
 
-### When to use AMOS Core
+### Marts & Metrics (under development)
 
-- You need a single, reliable view across CRM, portfolio, fund admin, and finance
-- You’re standardizing KPIs and definitions across teams and service providers
-- You want a durable foundation for dashboards, reporting, and AI assistants
+The marts are stored in the `models/marts` directory. Currently under development, they include metrics for fund performance, company performance, position performance, returns timeseries, and cashflows.
+
+## Customization
+
+The recommended way to customize AMOS Core is to create a new dbt project and add AMOS Core as a dependency. You can then create custom packages to add your own models and metrics, keeping AMOS Core separate from your custom code.
+
+## Contributing
+
+AMOS is open source and welcomes contributions. Report bugs, suggest features, add integration patterns, or submit pull requests.
+
+## Support
+
+- **Documentation**: [docs.amos.tech](https://docs.amos.tech)
+- **Issues**: GitHub Issues
 
 ## Related Projects
 
-- **[AMOS Starter](https://github.com/open-amos/starter)** – Orchestrator and entry point
-- **[AMOS Source Example](https://github.com/open-amos/source-example)** – Source integration patterns and example data
-
-### Docs
-
-For detailed setup and technical docs, visit [docs.amos.tech](https://docs.amos.tech).
-
-
+- **[AMOS Starter](../starter)** - Orchestrator and entry point
+- **[AMOS Source Example](../source-example)** - Source integration patterns
+- **[AMOS Dashboard](../dashboard-example)** - Example analytics and KPI dashboards built on AMOS Core
