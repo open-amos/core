@@ -42,7 +42,6 @@ AMOS is open source and welcomes contributions. Report bugs, suggest features, a
 - **Issues**: GitHub Issues
 
 ## Related Projects
-
-- **[AMOS Starter](../starter)** - Orchestrator and entry point
+- **[AMOS Starter](../starter)** - Coordinator and entry point
 - **[AMOS Source Example](../source-example)** - Source integration patterns
 - **[AMOS Dashboard](../dashboard-example)** - Example analytics and KPI dashboards built on AMOS Core
