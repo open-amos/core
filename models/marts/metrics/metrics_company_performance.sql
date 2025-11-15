@@ -12,7 +12,9 @@
 with companies as (
     select
         company_id,
-        name as company_name
+        name as company_name,
+        website,
+        description
     from {{ ref('dim_companies') }}
 ),
 
@@ -84,6 +86,22 @@ company_metrics as (
     select
         c.company_id,
         c.company_name,
+        -- Get primary country (todo: add temporal validity check)
+        (
+            select pc.primary_country
+            from primary_countries pc
+            where pc.company_id = c.company_id
+            limit 1
+        ) as primary_country,
+        -- Get primary industry (todo: add temporal validity check)
+        (
+            select pi.primary_industry
+            from primary_industries pi
+            where pi.company_id = c.company_id
+            limit 1
+        ) as primary_industry,
+        c.website,
+        c.description,
         cf.period_end_date,
         cf.revenue,
         cf.ebitda,
@@ -100,24 +118,6 @@ company_metrics as (
         lv.enterprise_value / nullif(cf.ebitda, 0) as ev_to_ebitda,
         -- Calculate EV/Revenue with NULLIF protection
         lv.enterprise_value / nullif(cf.revenue, 0) as ev_to_revenue,
-        -- Get primary country with temporal validity check
-        (
-            select pc.primary_country
-            from primary_countries pc
-            where pc.company_id = c.company_id
-                and cf.period_end_date between pc.valid_from 
-                    and coalesce(pc.valid_to, '9999-12-31')
-            limit 1
-        ) as primary_country,
-        -- Get primary industry with temporal validity check
-        (
-            select pi.primary_industry
-            from primary_industries pi
-            where pi.company_id = c.company_id
-                and cf.period_end_date between pi.valid_from 
-                    and coalesce(pi.valid_to, '9999-12-31')
-            limit 1
-        ) as primary_industry,
         cf.reporting_currency
     from companies c
     inner join company_financials cf on c.company_id = cf.company_id
