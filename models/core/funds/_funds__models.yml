@@ -138,6 +138,14 @@ models:
       - name: total_interest_income
         description: "Total interest income earned"
       
+      - name: nav_amount
+        description: "Net Asset Value in original currency from fund administrator"
+      
+      - name: nav_amount_converted
+        description: "Net Asset Value converted to fund base currency"
+        tests:
+          - not_null
+      
       - name: created_at
         description: "Timestamp when the snapshot record was created"
       

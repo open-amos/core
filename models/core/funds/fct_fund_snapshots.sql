@@ -20,6 +20,8 @@ with fund_snapshots as (
         total_expenses,
         total_management_fees,
         total_interest_income,
+        coalesce(nav_amount, null) as nav_amount,
+        coalesce(nav_amount_converted, null) as nav_amount_converted,
         source,
         source_reference,
         created_at,
