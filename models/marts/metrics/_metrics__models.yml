@@ -1082,3 +1082,115 @@ models:
       
       - name: reporting_currency
         description: "Currency code for the financial data from company financials"
+
+  - name: metrics_portfolio_overview
+    description: |
+      Portfolio-level aggregate performance metrics providing a consolidated view across all funds.
+      Combines fund-level metrics to calculate portfolio-wide NAV, commitments, return multiples, 
+      and composition metrics. Uses commitment-weighted aggregation for portfolio multiples to 
+      properly reflect the relative size of each fund.
+      
+      **Grain**: One row per period_end_date
+      
+      **Source Systems**: Fund Administration (ADMIN), Portfolio Management (PM)
+      
+      **Use Cases**:
+      - Executive portfolio performance dashboards
+      - Portfolio-wide TVPI, DPI, and RVPI tracking over time
+      - Total NAV and commitment monitoring
+      - Portfolio composition analysis (fund count, company count, position count)
+      - Net cashflow analysis across all funds
+      - Portfolio-level trend analysis and reporting
+      
+      **Example Query**:
+      ```sql
+      -- Latest portfolio performance metrics
+      SELECT 
+        period_end_date,
+        total_nav,
+        total_commitments,
+        total_unfunded_commitment,
+        tvpi_portfolio,
+        dpi_portfolio,
+        rvpi_portfolio,
+        number_of_funds,
+        number_of_companies,
+        number_of_positions
+      FROM metrics_portfolio_overview
+      WHERE period_end_date = (SELECT MAX(period_end_date) FROM metrics_portfolio_overview);
+      
+      -- Portfolio performance trend over time
+      SELECT 
+        period_end_date,
+        total_nav,
+        tvpi_portfolio,
+        dpi_portfolio,
+        net_cash_contributions_period
+      FROM metrics_portfolio_overview
+      ORDER BY period_end_date;
+      ```
+    columns:
+      - name: period_end_date
+        description: "End date of the reporting period - Primary Key"
+        tests:
+          - unique
+          - not_null
+      
+      - name: total_nav
+        description: "Total Net Asset Value across all funds, aggregated from fund_nav in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: total_commitments
+        description: "Total committed capital across all funds, aggregated from total_commitments in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: total_called_capital
+        description: "Total called capital across all funds, aggregated from total_called_capital in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: total_unfunded_commitment
+        description: "Total unfunded commitment across all funds = total_commitments - total_called_capital, aggregated from unfunded_commitment in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: total_distributions
+        description: "Total distributions to investors across all funds, aggregated from total_distributions in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: dpi_portfolio
+        description: "Portfolio-level Distributions to Paid-In capital ratio, calculated as commitment-weighted average: SUM(dpi * total_commitments) / SUM(total_commitments)"
+      
+      - name: rvpi_portfolio
+        description: "Portfolio-level Residual Value to Paid-In capital ratio, calculated as commitment-weighted average: SUM(rvpi * total_commitments) / SUM(total_commitments)"
+      
+      - name: tvpi_portfolio
+        description: "Portfolio-level Total Value to Paid-In capital ratio, calculated as commitment-weighted average: SUM(tvpi * total_commitments) / SUM(total_commitments)"
+      
+      - name: number_of_funds
+        description: "Count of distinct funds with data in the period"
+        tests:
+          - not_null
+      
+      - name: number_of_companies
+        description: "Total count of distinct portfolio companies across all funds, aggregated from number_of_portfolio_companies in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: number_of_positions
+        description: "Total count of distinct active instruments across all funds, aggregated from number_of_positions in metrics_fund_performance"
+        tests:
+          - not_null
+      
+      - name: net_cash_contributions_period
+        description: "Net cashflows for the period across all funds = contributions minus distributions. Positive values indicate net contributions (capital deployed), negative values indicate net distributions (capital returned). Calculated from metrics_returns_cashflows aggregated by quarter."
+        tests:
+          - not_null
+      
+      - name: as_of_date
+        description: "Date when metrics were calculated (current_date)"
+        tests:
+          - not_null
