@@ -136,6 +136,8 @@ Table "public"."fund_snapshots" {
   "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
   "source" varchar(128)
   "source_reference" varchar(400)
+  "nav_amount" numeric(20,2) [note: 'Net Asset Value in native currency']
+  "nav_amount_converted" numeric(20,2) [note: 'Net Asset Value converted to fund base currency']
   "committed_capital" numeric(20,2)
   "called_capital" numeric(20,2)
   "dpi" decimal(18,10)
