@@ -55,51 +55,11 @@ latest_valuations as (
     where rn = 1
 ),
 
--- Get primary country with temporal validity check
-primary_countries as (
-    select
-        bcc.company_id,
-        c.name as primary_country,
-        bcc.valid_from,
-        bcc.valid_to
-    from {{ ref('br_company_countries') }} bcc
-    inner join {{ ref('dim_countries') }} c 
-        on bcc.country_code = c.country_iso2_code
-    where bcc.primary_flag = true
-),
-
--- Get primary industry with temporal validity check
-primary_industries as (
-    select
-        bci.company_id,
-        i.name as primary_industry,
-        bci.valid_from,
-        bci.valid_to
-    from {{ ref('br_company_industries') }} bci
-    inner join {{ ref('dim_industries') }} i 
-        on bci.industry_id = i.industry_id
-    where bci.primary_flag = true
-),
-
 -- Combine all metrics
 company_metrics as (
     select
         c.company_id,
         c.company_name,
-        -- Get primary country (todo: add temporal validity check)
-        (
-            select pc.primary_country
-            from primary_countries pc
-            where pc.company_id = c.company_id
-            limit 1
-        ) as primary_country,
-        -- Get primary industry (todo: add temporal validity check)
-        (
-            select pi.primary_industry
-            from primary_industries pi
-            where pi.company_id = c.company_id
-            limit 1
-        ) as primary_industry,
         c.website,
         c.description,
         cf.period_end_date,
@@ -118,12 +78,28 @@ company_metrics as (
         lv.enterprise_value / nullif(cf.ebitda, 0) as ev_to_ebitda,
         -- Calculate EV/Revenue with NULLIF protection
         lv.enterprise_value / nullif(cf.revenue, 0) as ev_to_revenue,
+        -- Get primary country
+        dc.name as country_name,
+        -- Get primary industry
+        di.name as industry_name,
         cf.reporting_currency
     from companies c
     inner join company_financials cf on c.company_id = cf.company_id
     left join latest_valuations lv 
         on c.company_id = lv.company_id 
         and cf.period_end_date = lv.period_end_date
+    -- Join to primary country
+    left join {{ ref('br_company_countries') }} bcc
+        on c.company_id = bcc.company_id
+        and bcc.primary_flag = true
+    left join {{ ref('dim_countries') }} dc
+        on bcc.country_code = dc.country_iso2_code
+    -- Join to primary industry
+    left join {{ ref('br_company_industries') }} bci
+        on c.company_id = bci.company_id
+        and bci.primary_flag = true
+    left join {{ ref('dim_industries') }} di
+        on bci.industry_id = di.industry_id
 )
 
 select * from company_metrics
