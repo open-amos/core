@@ -1074,11 +1074,11 @@ models:
       - name: ev_to_revenue
         description: "Enterprise value to revenue multiple = enterprise_value / revenue with NULLIF protection"
       
-      - name: country_name
-        description: "Primary country name from dim_countries joined via br_company_countries where primary_flag is TRUE. Uses LEFT JOIN to avoid dropping companies without country assignment."
+      - name: primary_country
+        description: "Primary country from br_company_countries where primary_flag is TRUE with temporal validity check"
       
-      - name: industry_name
-        description: "Primary industry name from dim_industries joined via br_company_industries where primary_flag is TRUE. Uses LEFT JOIN to avoid dropping companies without industry assignment."
+      - name: primary_industry
+        description: "Primary industry from br_company_industries where primary_flag is TRUE with temporal validity check"
       
       - name: reporting_currency
         description: "Currency code for the financial data from company financials"
