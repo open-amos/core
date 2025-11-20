@@ -31,6 +31,8 @@ Enum "instrument_cashflow_type" {
     "DRAW"
     "PREPAYMENT"
     "OTHER"
+    "PURCHASE"
+    "SALE"
 }
 
 Enum "instrument_type" {
@@ -49,17 +51,7 @@ Enum "interest_index" {
     "FIXED"
 }
 
-Enum "loan_cashflow_type" {
-    "DRAW"
-    "PRINCIPAL_REPAYMENT"
-    "INTEREST_PAYMENT"
-    "FEE_PAYMENT"
-    "PREPAYMENT_PENALTY"
-    "AMENDMENT_FEE"
-    "COMMITMENT_FEE"
-}
-
-Enum "loan_type" {
+Enum "instrument_credit_type" {
     "TERM"
     "REVOLVER"
     "DDTL"
@@ -107,70 +99,114 @@ Enum "valuation_type" {
     "FORECAST"
 }
 
-Table "public"."opportunity_countries" {
-  "opportunity_id" varchar(64) [not null, ref: < "public"."opportunities"."opportunity_id"]
-  "country_code" "char(2)" [not null, ref: < "public"."countries"."country_iso2_code"]
-  "primary_flag" boolean [not null]
-  "allocation_pct" decimal(5,2)
-  "role" varchar(32)
+Table "public"."currencies" {
+  "currency_code" varchar(3) [pk, not null]
+  "name" varchar(128) [not null]
+  "symbol" varchar(10)
+  "created_at" timestamp
+  "updated_at" timestamp
+}
+
+Table "public"."funds" {
+  "fund_id" varchar(64) [pk, not null]
+  "name" varchar(255) [not null]
+  "type" varchar(64)
+  "vintage" integer
+  "management_fee" decimal(7,4)
+  "hurdle" decimal(7,4)
+  "carried_interest" decimal(7,4)
+  "target_commitment" numeric(20,2)
+  "incorporated_in" varchar(128)
+  "base_currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "strategy" text
+  "final_close_date" date
+  "created_at" timestamp
+  "updated_at" timestamp
+  Note: 'On-delete behavior to enforce in SQL migrations: funds -> commitments/transactions [RESTRICT].'
+}
+
+Table "public"."fund_snapshots" {
+  "fund_snapshot_id" varchar(500) [pk, not null]
+  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
+  "period_start_date" date
+  "period_end_date" date [not null]
+  "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
+  "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
+  "snapshot_source" snapshot_source [not null, default: `INTERNAL`]
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "source" varchar(128)
+  "source_reference" varchar(400)
+  "committed_capital" numeric(20,2)
+  "called_capital" numeric(20,2)
+  "dpi" decimal(18,10)
+  "rvpi" decimal(18,10)
+  "expected_coc" decimal(18,10)
+  "cash_amount" numeric(20,2)
+  "total_distributions" numeric(20,2)
+  "total_expenses" numeric(20,2)
+  "total_management_fees" numeric(20,2)
+  "total_interest_income" numeric(20,2)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (opportunity_id, country_code) [pk, name: "pk_opportunity_country"]
-    opportunity_id [name: "idx_opportunity_country_opportunity_id"]
-    country_code [name: "idx_opportunity_country_country_code"]
+    (fund_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_fund_snap_key"]
+    fund_id [name: "idx_fund_snap_fund_id"]
+    period_end_date [name: "idx_fund_snap_period_end"]
   }
 }
 
-Table "public"."company_industries" {
-  "company_id" varchar(64) [not null]
-  "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
-  "primary_flag" boolean [not null]
+Table "public"."companies" {
+  "company_id" varchar(64) [pk, not null]
+  "name" varchar(255) [not null]
+  "website" varchar(255)
+  "description" text
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (company_id, industry_id) [pk, name: "pk_company_industry_company_id_industry_id"]
-    company_id [name: "idx_company_industry_company_id"]
-    industry_id [name: "idx_company_industry_industry_id"]
+    name [name: "idx_companies_name"]
+  }
+  Note: 'A company may belong to multiple industries via company_industry (no single industry_id FK).'
+}
+
+Table "public"."share_classes" {
+  "share_class_id" varchar(64) [pk, not null]
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "name" varchar(128) [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    (company_id, name) [unique, name: "idx_share_class_company_id_name"]
+    company_id [name: "idx_share_class_company_id"]
   }
 }
 
-Table "public"."instrument_industries" {
-  "instrument_id" varchar(64) [not null]
-  "industry_id" varchar(64) [not null]
-  "allocation_pct" decimal(5,2)
-  "primary_flag" boolean
-  "valid_from" date [not null]
-  "valid_to" date
+Table "public"."company_valuations" {
+  "company_valuation_id" varchar(64) [pk, not null]
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "period_start_date" date
+  "period_end_date" date [not null]
+  "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
+  "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
+  "snapshot_source" snapshot_source [not null, default: `INTERNAL`]
+  "amount" numeric(20,2)
+  "valuation_type" valuation_type
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (instrument_id, industry_id, valid_from) [pk, name: "pk_instrument_industry"]
-    instrument_id [name: "idx_instrument_industry_instrument_id"]
-    industry_id [name: "idx_instrument_industries_industry_id"]
-    valid_from [name: "idx_instrument_industries_valid_from"]
-  }
-}
-
-Table "public"."opportunity_industries" {
-  "opportunity_id" varchar(64) [not null, ref: < "public"."opportunities"."opportunity_id"]
-  "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (opportunity_id, industry_id) [pk, name: "pk_opportunity_industry_opportunity_id_industry_id"]
-    opportunity_id [name: "idx_opportunity_industries_opportunity_id"]
-    industry_id [name: "idx_opportunity_industries_industry_id"]
+    (company_id, period_end_date, valuation_type, reporting_basis, snapshot_source) [unique, name: "idx_company_valuation_key"]
+    company_id [name: "idx_company_valuation_company_id"]
+    period_end_date [name: "idx_company_valuation_period_end"]
   }
 }
 
 Table "public"."company_financials" {
   "company_performance_snapshot_id" varchar(64) [pk, not null]
-  "company_id" varchar(64) [not null]
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
   "period_start_date" date [note: 'Optional; some ERPs export start/end']
   "period_end_date" date [not null]
   "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY']
@@ -204,146 +240,140 @@ Table "public"."company_financials" {
   }
 }
 
-Table "public"."loans" {
-  "loan_id" varchar(64) [pk, not null]
-  "instrument_id" varchar(64) [unique, not null]
-  "facility_id" varchar(64) [not null, ref: < "public"."facilities"."facility_id"]
-  "loan_type" loan_type [not null]
-  "tranche_label" varchar(64)
-  "commitment_amount" numeric(24,2)
-  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
-  "start_date" date [not null]
-  "maturity_date" date [not null]
-  "interest_index" interest_index [not null]
-  "index_tenor_days" integer
-  "fixed_rate_pct" decimal(7,4)
-  "spread_bps" integer [not null]
-  "floor_pct" decimal(7,4)
-  "day_count" day_count [not null]
-  "pay_freq_months" integer [not null]
-  "amortization_type" amortization_type [not null]
-  "security_rank" security_rank
-  "status" varchar(32)
+Table "public"."investor_types" {
+  "investor_type_id" varchar(64) [pk, not null]
+  "name" varchar(128) [not null]
+  "description" text
+  "kyc_category" varchar(128)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    facility_id [name: "idx_loan_facility_id"]
-    (facility_id, tranche_label) [name: "idx_loan_facility_tranche"]
-    instrument_id [name: "idx_loan_instrument_id"]
+    name [unique, name: "uq_investor_types_name"]
   }
 }
 
-Table "public"."counterparties" {
-  "counterparty_id" varchar(64) [pk, not null, ref: < "public"."facility_lenders"."counterparty_id"]
+Table "public"."investors" {
+  "investor_id" varchar(64) [pk, not null]
   "name" varchar(255) [not null]
-  "type" varchar(64)
-  "country_code" "char(2)" [ref: < "public"."countries"."country_iso2_code"]
+  "investor_type_id" varchar(64) [ref: < "public"."investor_types"."investor_type_id"]
+  "domicile_country_code" "char(2)" [ref: < "public"."countries"."country_iso2_code"]
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    name [unique, name: "idx_counterparty_name"]
-    country_code [name: "idx_counterparty_country_code"]
+    investor_type_id [name: "idx_investor_investor_type_id"]
   }
 }
 
-Table "public"."share_classes" {
-  "share_class_id" varchar(64) [pk, not null, ref: < "public"."investment_rounds"."share_class_id", ref: < "public"."shareholders"."share_class_id"]
-  "company_id" varchar(64) [not null]
-  "name" varchar(128) [not null]
+Table "public"."instruments" {
+  "instrument_id" varchar(64) [pk, not null, ref: < "public"."instrument_countries"."instrument_id", ref: < "public"."instrument_industries"."instrument_id", ref: < "public"."instruments_equity"."instrument_id"]
+  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "name" varchar(255) [not null]
+  "instrument_type" instrument_type [not null]
+  "inception_date" date
+  "termination_date" date
+  "description" text
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (company_id, name) [unique, name: "idx_share_class_company_id_name"]
-    company_id [name: "idx_share_class_company_id"]
+    fund_id [name: "idx_instrument_fund_id"]
+    company_id [name: "idx_instrument_company_id"]
+    (fund_id, company_id, instrument_type) [name: "idx_instrument_key"]
   }
+  Note: 'On-delete behavior to enforce in SQL migrations: instruments -> instrument_snapshots/instrument_cashflows [RESTRICT or CASCADE].'
 }
 
-Table "public"."commitment_snapshots" {
-  "commitment_snapshot_id" varchar(64) [pk, not null]
-  "commitment_id" varchar(64) [not null]
-  "period_start_date" date
-  "period_end_date" date
-  "frequency" varchar(32)
-  "reporting_basis" varchar(32)
-  "snapshot_source" snapshot_source
-  "total_commitment" numeric(20,2)
-  "total_drawdowns" numeric(20,2)
-  "total_distributions" numeric(20,2)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (commitment_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_commitment_snap_key"]
-    commitment_id [name: "idx_commitment_metrics_commitment_id"]
-  }
-}
-
-Table "public"."stages" {
-  "stage_id" varchar(64) [pk, not null, ref: < "public"."opportunities"."stage_id"]
-  "name" varchar(128) [not null]
-  "type" varchar(64)
-  "order" integer
-  "created_at" timestamp
-  "updated_at" timestamp
-}
-
-Table "public"."company_valuations" {
-  "company_valuation_id" varchar(64) [pk, not null]
-  "company_id" varchar(64) [not null]
+Table "public"."instrument_snapshots" {
+  "instrument_snapshot_id" varchar(64) [pk, not null]
+  "instrument_id" varchar(64) [not null, ref: < "public"."instruments"."instrument_id"]
   "period_start_date" date
   "period_end_date" date [not null]
   "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
   "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
-  "snapshot_source" snapshot_source [not null, default: `INTERNAL`]
-  "amount" numeric(20,2)
-  "valuation_type" valuation_type
+  "snapshot_source" snapshot_source [not null]
+  "snapshot_source_file_ref" varchar(255)
+  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
+  "fx_rate" numeric(18,8) [note: 'base-per-native; *_converted = * * fx_rate']
+  "fx_rate_as_of" date
+  "fx_rate_source" varchar(64)
+  "fair_value" numeric(24,2)
+  "fair_value_converted" numeric(24,2)
+  "accrued_income" numeric(24,2)
+  "accrued_income_converted" numeric(24,2)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (company_id, period_end_date, valuation_type, reporting_basis, snapshot_source) [unique, name: "idx_company_valuation_key"]
-    company_id [name: "idx_company_valuation_company_id"]
-    period_end_date [name: "idx_company_valuation_period_end"]
+    (instrument_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_instrument_snapshot_key"]
+    instrument_id [name: "idx_instrument_snapshot_instrument_id"]
+    period_end_date [name: "idx_instrument_snapshot_period_end"]
+    (instrument_id, period_end_date) [name: "idx_instr_snap_instrument_end"]
+    (reporting_basis, snapshot_source) [name: "idx_instr_snap_basis_source"]
   }
+  Note: 'Null = not applicable/not reported; 0 = true zero; fx_rate > 0 when provided.'
 }
 
-Table "public"."companies" {
-  "company_id" varchar(64) [pk, not null, ref: < "public"."company_industries"."company_id", ref: < "public"."company_dividend_forecasts"."company_id", ref: < "public"."company_financials"."company_id", ref: < "public"."company_valuations"."company_id", ref: < "public"."opportunities"."company_id", ref: < "public"."share_classes"."company_id", ref: < "public"."shareholders"."company_id"]
-  "name" varchar(255) [not null]
-  "website" varchar(255)
-  "description" text
-  "currency_code" varchar(3)
+Table "public"."instrument_cashflows" {
+  "instrument_cashflow_id" varchar(64) [pk, not null]
+  "instrument_id" varchar(64) [not null, ref: < "public"."instruments"."instrument_id"]
+  "instrument_cashflow_type" instrument_cashflow_type [not null]
+  "date" date [not null]
+  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
+  "fx_rate" numeric(18,8)
+  "fx_rate_as_of" date
+  "fx_rate_source" varchar(64)
+  "amount" numeric(24,2) [not null]
+  "amount_converted" numeric(24,2)
+  "transaction_id" varchar(64)
+  "reference" varchar(255)
+  "non_cash" boolean [default: false]
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    name [name: "idx_companies_name"]
+    instrument_id [name: "idx_instr_cf_instrument_id"]
+    (instrument_id, date) [name: "idx_instr_cf_instrument_date"]
+    date [name: "idx_instr_cf_date"]
+    transaction_id [name: "idx_instr_cf_tx_id"]
+    (instrument_id, instrument_cashflow_type, date) [name: "idx_instr_cf_type_date"]
   }
-  Note: 'A company may belong to multiple industries via company_industry (no single industry_id FK).'
+  Note: 'Data quality checks to enforce in SQL: amount >= 0 when non_cash=false; fx_rate > 0 when provided.'
 }
 
-Table "public"."commitment_records" {
-  "commitment_record_id" varchar(64) [pk, not null]
-  "commitment_id" varchar(64) [not null]
-  "date_from" date [not null]
-  "amount" numeric(20,2)
-  "status" varchar(64)
+Table "public"."opportunity_countries" {
+  "opportunity_id" varchar(64) [not null, ref: < "public"."opportunities"."opportunity_id"]
+  "country_code" "char(2)" [not null, ref: < "public"."countries"."country_iso2_code"]
+  "primary_flag" boolean [not null]
+  "allocation_pct" decimal(5,2)
+  "role" varchar(32)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    commitment_id [name: "idx_commitment_record_commitment_id"]
+    (opportunity_id, country_code) [pk, name: "pk_opportunity_country"]
+    opportunity_id [name: "idx_opportunity_country_opportunity_id"]
+    country_code [name: "idx_opportunity_country_country_code"]
   }
 }
 
-Table "public"."industries" {
-  "industry_id" varchar(64) [pk, not null, ref: < "public"."instrument_industries"."industry_id"]
-  "name" varchar(128) [unique, not null]
+Table "public"."commitments" {
+  "commitment_id" varchar(64) [pk, not null]
+  "fund_id" varchar(64) [not null]
+  "investor_id" varchar(64) [not null, ref: < "public"."investors"."investor_id"]
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "original_amount" numeric(20,2)
+  "agreement_date" date
   "created_at" timestamp
   "updated_at" timestamp
+
+  Indexes {
+    (fund_id, investor_id) [unique, name: "idx_commitment_fund_id_investor_id"]
+    fund_id [name: "idx_commitments_fund_id"]
+    investor_id [name: "idx_commitments_investor_id"]
+  }
 }
 
 Table "public"."instrument_countries" {
@@ -363,83 +393,7 @@ Table "public"."instrument_countries" {
     country_code [name: "idx_instrument_country_country_code"]
     valid_from [name: "idx_instrument_country_valid_from"]
   }
-}
-
-Table "public"."commitments" {
-  "commitment_id" varchar(64) [pk, not null, ref: < "public"."commitment_records"."commitment_id", ref: < "public"."commitment_snapshots"."commitment_id"]
-  "fund_id" varchar(64) [not null]
-  "investor_id" varchar(64) [not null]
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (fund_id, investor_id) [unique, name: "idx_commitment_fund_id_investor_id"]
-    fund_id [name: "idx_commitments_fund_id"]
-    investor_id [name: "idx_commitments_investor_id"]
-  }
-}
-
-Table "public"."instrument_cashflows" {
-  "instrument_cashflow_id" varchar(64) [pk, not null]
-  "instrument_id" varchar(64) [not null, ref: < "public"."instruments"."instrument_id"]
-  "instrument_cashflow_type" instrument_cashflow_type [not null]
-  "date" date [not null]
-  "amount" numeric(24,2) [not null]
-  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
-  "fx_rate" numeric(18,8)
-  "amount_converted" numeric(24,2)
-  "transaction_id" varchar(64) [ref: < "public"."transactions"."transaction_id"]
-  "reference" varchar(255)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    instrument_id [name: "idx_instr_cf_instrument_id"]
-    (instrument_id, date) [name: "idx_instr_cf_instrument_date"]
-    date [name: "idx_instr_cf_date"]
-    transaction_id [name: "idx_instr_cf_tx_id"]
-  }
-}
-
-Table "public"."instruments" {
-  "instrument_id" varchar(64) [pk, not null, ref: < "public"."instrument_countries"."instrument_id", ref: < "public"."instrument_industries"."instrument_id", ref: < "public"."loans"."instrument_id"]
-  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
-  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
-  "instrument_type" instrument_type [not null]
-  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
-  "inception_date" date
-  "termination_date" date
-  "description" text
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    fund_id [name: "idx_instrument_fund_id"]
-    company_id [name: "idx_instrument_company_id"]
-    (fund_id, company_id, instrument_type) [name: "idx_instrument_key"]
-  }
-}
-
-Table "public"."facilities" {
-  "facility_id" varchar(64) [pk, not null, ref: < "public"."facility_lenders"."facility_id"]
-  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
-  "borrower_company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
-  "facility_type" facility_type [not null]
-  "agent_counterparty_id" varchar(64) [ref: < "public"."counterparties"."counterparty_id"]
-  "agreement_date" date [not null]
-  "effective_date" date
-  "maturity_date" date
-  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
-  "total_commitment" numeric(24,2)
-  "purpose" varchar(256)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    fund_id [name: "idx_facility_fund_id"]
-    borrower_company_id [name: "idx_facility_borrower_company_id"]
-    (fund_id, borrower_company_id, agreement_date) [name: "idx_facility_key"]
-  }
+  Note: 'No overlapping intervals per (instrument_id, country_code); at most one primary per instrument across active rows; allocation_pct between 0 and 100.'
 }
 
 Table "public"."countries" {
@@ -459,146 +413,138 @@ Table "public"."countries" {
   }
 }
 
-Table "public"."instrument_snapshots" {
-  "instrument_snapshot_id" varchar(64) [pk, not null]
-  "instrument_id" varchar(64) [not null, ref: < "public"."instruments"."instrument_id"]
+Table "public"."commitment_snapshots" {
+  "commitment_snapshot_id" varchar(64) [pk, not null]
+  "commitment_id" varchar(64) [not null, ref: < "public"."commitments"."commitment_id"]
   "period_start_date" date
-  "period_end_date" date [not null]
-  "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
-  "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
-  "snapshot_source" snapshot_source [not null]
+  "period_end_date" date
+  "frequency" varchar(32)
+  "reporting_basis" varchar(32)
+  "snapshot_source" snapshot_source
   "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
-  "fx_rate" numeric(18,8) [note: 'base-per-native; *_converted = * * fx_rate']
-  "fair_value" numeric(24,2)
-  "amortized_cost" numeric(24,2)
-  "principal_outstanding" numeric(24,2)
-  "undrawn_commitment" numeric(24,2)
-  "accrued_income" numeric(24,2)
-  "accrued_fees" numeric(24,2)
-  "fair_value_converted" numeric(24,2)
-  "amortized_cost_converted" numeric(24,2)
-  "principal_outstanding_converted" numeric(24,2)
-  "undrawn_commitment_converted" numeric(24,2)
-  "accrued_income_converted" numeric(24,2)
-  "accrued_fees_converted" numeric(24,2)
-  "equity_stake_pct" decimal(9,6)
-  "equity_dividends_cum" numeric(24,2)
-  "equity_exit_proceeds_actual" numeric(24,2)
-  "equity_exit_proceeds_forecast" numeric(24,2)
-  "snapshot_source_file_ref" varchar(255)
+  "source" varchar(128)
+  "source_reference" varchar(400)
+  "total_commitment" numeric(20,2)
+  "total_drawdowns" numeric(20,2)
+  "total_distributions" numeric(20,2)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (instrument_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_instrument_snapshot_key"]
-    instrument_id [name: "idx_instrument_snapshot_instrument_id"]
-    period_end_date [name: "idx_instrument_snapshot_period_end"]
+    (commitment_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_commitment_snap_key"]
+    commitment_id [name: "idx_commitment_metrics_commitment_id"]
   }
-  Note: 'Null = not applicable/not reported; 0 = true zero.'
 }
 
-Table "public"."investment_rounds" {
-  "investment_round_id" varchar(64) [pk, not null, ref: < "public"."transactions"."investment_round_id"]
-  "instrument_id" varchar(64) [not null, ref: < "public"."instruments"."instrument_id"]
-  "date" date [not null]
-  "description" text
-  "number_of_shares_acquired" numeric(24,6)
-  "share_class_id" varchar(64)
-  "acquired_stake" decimal(9,6)
+Table "public"."instrument_industries" {
+  "instrument_id" varchar(64) [not null]
+  "industry_id" varchar(64) [not null]
+  "allocation_pct" decimal(5,2)
+  "primary_flag" boolean
+  "valid_from" date [not null]
+  "valid_to" date
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    instrument_id [name: "idx_investment_round_instrument_id"]
+    (instrument_id, industry_id, valid_from) [pk, name: "pk_instrument_industry"]
+    instrument_id [name: "idx_instrument_industry_instrument_id"]
+    industry_id [name: "idx_instrument_industries_industry_id"]
+    valid_from [name: "idx_instrument_industries_valid_from"]
   }
+  Note: 'Ensure no overlapping (instrument_id, industry_id) intervals; at most one primary per instrument across active rows; allocation_pct between 0 and 100.'
 }
 
-Table "public"."loan_snapshots" {
-  "loan_snapshot_id" varchar(64) [pk, not null]
-  "loan_id" varchar(64) [not null, ref: < "public"."loans"."loan_id"]
-  "period_start_date" date
-  "period_end_date" date [not null]
-  "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
-  "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
-  "snapshot_source" snapshot_source [not null]
-  "principal_outstanding" numeric(24,2) [not null]
-  "undrawn_commitment" numeric(24,2)
-  "accrued_interest" numeric(24,2)
-  "accrued_fees" numeric(24,2)
-  "amortized_cost" numeric(24,2)
-  "fair_value" numeric(24,2)
-  "expected_loss" numeric(24,2)
-  "status" varchar(32)
-  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
-  "fx_rate" numeric(18,8) [note: 'base-per-native; *_converted = * * fx_rate']
-  "principal_outstanding_converted" numeric(24,2)
-  "undrawn_commitment_converted" numeric(24,2)
-  "accrued_interest_converted" numeric(24,2)
-  "accrued_fees_converted" numeric(24,2)
-  "amortized_cost_converted" numeric(24,2)
-  "fair_value_converted" numeric(24,2)
-  "source_file_ref" varchar(255)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (loan_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_loan_snapshot_key"]
-    loan_id [name: "idx_loan_snapshot_loan_id"]
-    period_end_date [name: "idx_loan_snapshot_period_end"]
-  }
-  Note: 'Null vs zero semantics mirror instrument_snapshot.'
-}
-
-Table "public"."company_dividend_forecasts" {
-  "company_dividend_forecast_id" varchar(64) [pk, not null]
-  "company_id" varchar(64) [not null]
-  "date" date [not null]
-  "amount" numeric(20,2)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (company_id, date) [unique, name: "idx_company_dividend_forecast_company_id_date"]
-    company_id [name: "idx_company_dividend_forecast_company_id"]
-    date [name: "idx_company_dividend_forecasts_date"]
-  }
-}
-
-Table "public"."currencies" {
-  "currency_code" "char(3)" [pk, not null, ref: < "public"."transactions"."currency_code"]
-  "name" varchar(128) [not null]
-  "symbol" varchar(10)
-  "created_at" timestamp
-  "updated_at" timestamp
-}
-
-Table "public"."facility_lenders" {
-  "facility_id" varchar(64) [not null]
-  "counterparty_id" varchar(64) [not null]
-  "fund_id" varchar(64)
-  "syndicate_role" syndicate_role
-  "commitment_amount" numeric(24,2)
-  "allocation_pct" decimal(7,4)
+Table "public"."company_industries" {
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
+  "valid_from" date [not null]
+  "valid_to" date
   "primary_flag" boolean
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    (facility_id, counterparty_id, fund_id) [pk, name: "pk_facility_lender"]
-    facility_id [name: "idx_facility_lender_facility_id"]
-    counterparty_id [name: "idx_facility_lender_counterparty_id"]
-    fund_id [name: "idx_facility_lender_fund_id"]
-    (facility_id, syndicate_role) [name: "idx_facility_lender_facility_role"]
+    (company_id, industry_id, valid_from) [pk, name: "pk_company_industry_company_id_industry_id_valid_from"]
+    company_id [name: "idx_company_industry_company_id"]
+    industry_id [name: "idx_company_industry_industry_id"]
   }
-  Note: 'Exactly one of counterparty_id or fund_id must be non-null (XOR).'
+  Note: 'Optional: allocation_pct if you need multi-industry weights. Ensure no overlapping intervals; at most one primary per company among active rows.'
+}
+
+Table "public"."company_countries" {
+  "company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "country_code" "char(2)" [not null, ref: < "public"."countries"."country_iso2_code"]
+  "valid_from" date [not null]
+  "valid_to" date
+  "allocation_pct" decimal(5,2)
+  "role" varchar(32)
+  "primary_flag" boolean
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    (company_id, country_code, valid_from) [pk, name: "pk_company_countries_company_id_country_code_valid_from"]
+    company_id [name: "idx_company_countries_company_id"]
+    country_code [name: "idx_company_countries_country_code"]
+  }
+  Note: 'No overlapping intervals per (company_id, country_code); at most one primary per company among active rows; allocation_pct between 0 and 100.'
+}
+
+Table "public"."instruments_equity" {
+  "instrument_id" varchar(64) [pk, not null]
+  "share_class_id" varchar(64) [not null, ref: < "public"."share_classes"."share_class_id"]
+  "initial_share_count" numeric(24,6)
+  "initial_ownership_pct" numeric(7,6)
+  "initial_cost" numeric(24,2)
+  "initial_price_per_share" numeric(24,6)
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "fx_rate" numeric(18,8) [note: 'base-per-native; initial_cost_converted = initial_cost * fx_rate']
+  "fx_rate_as_of" date
+  "fx_rate_source" varchar(64)
+  "initial_cost_converted" numeric(24,2)
+  "description" text
+  "created_at" timestamp
+  "updated_at" timestamp
+  Note: 'Capture either shares or pct (or both); validate 0 <= initial_ownership_pct <= 1.0 (or 0..100 if you prefer percent scale). If FX provided, fx_rate > 0. initial_cost >= 0 when provided.'
+}
+
+Table "public"."stages" {
+  "stage_id" varchar(64) [pk, not null]
+  "name" varchar(128) [not null]
+  "type" varchar(64)
+  "order" integer
+  "created_at" timestamp
+  "updated_at" timestamp
+}
+
+Table "public"."facilities" {
+  "facility_id" varchar(64) [pk, not null]
+  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
+  "borrower_company_id" varchar(64) [not null, ref: < "public"."companies"."company_id"]
+  "facility_type" facility_type [not null]
+  "agreement_date" date [not null]
+  "effective_date" date
+  "maturity_date" date
+  "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
+  "total_commitment" numeric(24,2)
+  "purpose" varchar(256)
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    fund_id [name: "idx_facility_fund_id"]
+    borrower_company_id [name: "idx_facility_borrower_company_id"]
+    (fund_id, borrower_company_id, agreement_date) [name: "idx_facility_key"]
+  }
 }
 
 Table "public"."opportunities" {
   "opportunity_id" varchar(64) [pk, not null]
-  "fund_id" varchar(64)
+  "fund_id" varchar(64) [ref: < "public"."funds"."fund_id"]
   "name" varchar(255) [not null]
-  "stage_id" varchar(64)
-  "company_id" varchar(64)
+  "stage_id" varchar(64) [ref: < "public"."stages"."stage_id"]
+  "company_id" varchar(64) [ref: < "public"."companies"."company_id"]
   "responsible" varchar(255)
   "amount" numeric(20,2)
   "next_step" varchar(255)
@@ -614,164 +560,117 @@ Table "public"."opportunities" {
   }
 }
 
-Table "public"."funds" {
-  "fund_id" varchar(64) [pk, not null, ref: < "public"."commitments"."fund_id", ref: < "public"."fund_snapshots"."fund_id", ref: < "public"."opportunities"."fund_id", ref: < "public"."transactions"."fund_id", ref: < "public"."facility_lenders"."fund_id"]
-  "name" varchar(255) [not null]
-  "type" varchar(64)
-  "vintage" integer
-  "management_fee" decimal(7,4)
-  "hurdle" decimal(7,4)
-  "carried_interest" decimal(7,4)
-  "target_commitment" numeric(20,2)
-  "incorporated_in" varchar(128)
-  "base_currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+Table "public"."industries" {
+  "industry_id" varchar(64) [pk, not null, ref: < "public"."instrument_industries"."industry_id"]
+  "name" varchar(128) [unique, not null]
   "created_at" timestamp
   "updated_at" timestamp
 }
 
-Table "public"."investor_types" {
-  "investor_type_id" varchar(64) [pk, not null, ref: < "public"."investors"."investor_type_id"]
-  "name" varchar(128) [not null]
-  "description" text
-  "kyc_category" varchar(128)
-  "created_at" timestamp
-  "updated_at" timestamp
-}
-
-Table "public"."shareholders" {
-  "shareholder_id" varchar(500) [pk, not null]
-  "company_id" varchar(500) [not null]
-  "name" varchar(255) [not null]
-  "type" varchar(64)
-  "number_of_shares" numeric(24,6)
-  "share_class_id" varchar(500)
-  "affiliated_entity" boolean
+Table "public"."opportunity_industries" {
+  "opportunity_id" varchar(64) [not null, ref: < "public"."opportunities"."opportunity_id"]
+  "industry_id" varchar(64) [not null, ref: < "public"."industries"."industry_id"]
+  "primary_flag" boolean
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    company_id [name: "idx_shareholder_company_id"]
-    share_class_id [name: "idx_shareholders_share_class_id"]
+    (opportunity_id, industry_id) [pk, name: "pk_opportunity_industry_opportunity_id_industry_id"]
+    opportunity_id [name: "idx_opportunity_industries_opportunity_id"]
+    industry_id [name: "idx_opportunity_industries_industry_id"]
   }
 }
 
-Table "public"."fund_snapshots" {
-  "fund_snapshot_id" varchar(500) [pk, not null]
-  "fund_id" varchar(64) [not null]
-  "period_start_date" date
-  "period_end_date" date [not null]
-  "frequency" varchar(32) [note: 'ANNUAL | QUARTERLY | MONTHLY | DAILY']
-  "reporting_basis" varchar(32) [note: 'AUDITED | MANAGEMENT | ESTIMATE']
-  "snapshot_source" snapshot_source [not null, default: `INTERNAL`]
-  "committed_capital" numeric(20,2)
-  "called_capital" numeric(20,2)
-  "dpi" decimal(18,10)
-  "rvpi" decimal(18,10)
-  "expected_coc" decimal(18,10)
-  "cash_amount" numeric(20,2)
-  "total_distributions" numeric(20,2)
-  "total_expenses" numeric(20,2)
-  "total_management_fees" numeric(20,2)
-  "total_loans_received" numeric(20,2)
-  "principal_outstanding" numeric(20,2)
-  "undrawn_commitment" numeric(20,2)
-  "total_interest_income" numeric(20,2)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    (fund_id, period_end_date, reporting_basis, snapshot_source) [unique, name: "idx_fund_snap_key"]
-    fund_id [name: "idx_fund_snap_fund_id"]
-    period_end_date [name: "idx_fund_snap_period_end"]
-  }
-}
-
-Table "public"."transactions" {
-  "transaction_id" varchar(64) [pk, not null]
-  "transaction_type" tx_type [not null]
-  "fund_id" varchar(64)
-  "investor_id" varchar(64)
-  "instrument_id" varchar(64) [ref: < "public"."instruments"."instrument_id"]
-  "investment_round_id" varchar(64)
-  "facility_id" varchar(64) [ref: < "public"."facilities"."facility_id"]
-  "name" varchar(255)
-  "description" text
-  "amount" numeric(24,2)
-  "currency_code" varchar(3)
-  "fx_rate" numeric(18,8) [note: 'base-per-native; amount_converted = amount * fx_rate']
-  "amount_converted" numeric(24,2)
+Table "public"."instruments_credit" {
+  "instrument_id" varchar(64) [pk, not null, ref: < "public"."instruments"."instrument_id"]
+  "facility_id" varchar(64) [not null, ref: < "public"."facilities"."facility_id"]
+  "instrument_credit_type" instrument_credit_type [not null]
+  "tranche_label" varchar(64)
+  "commitment_amount" numeric(24,2)
+  "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
+  "fx_rate" numeric(18,8) [note: 'base-per-native; commitment_amount_converted = commitment_amount * fx_rate']
   "fx_rate_as_of" date
   "fx_rate_source" varchar(64)
-  "date" date
-  "source" varchar(128)
-  "reference" varchar(255)
+  "commitment_amount_converted" numeric(24,2)
+  "start_date" date [not null]
+  "maturity_date" date [not null]
+  "interest_index" interest_index [not null]
+  "index_tenor_days" integer
+  "fixed_rate_pct" decimal(7,4)
+  "spread_bps" integer [not null]
+  "floor_pct" decimal(7,4)
+  "day_count" day_count [not null]
+  "pay_freq_months" integer [not null]
+  "amortization_type" amortization_type [not null]
+  "security_rank" security_rank
+  "status" varchar(32)
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    fund_id [name: "idx_transaction_fund_id"]
-    investor_id [name: "idx_transaction_investor_id"]
-    instrument_id [name: "idx_transaction_instrument_id"]
-    investment_round_id [name: "idx_transaction_round_id"]
-    facility_id [name: "idx_transaction_facility_id"]
-    date [name: "idx_transaction_date"]
+    facility_id [name: "idx_loan_facility_id"]
   }
-  Note: 'In marts, enforce: at least one of (instrument_id, round_id, facility_id/inferred loan) must be present and consistent with transaction_type.'
+  Note: 'Instrument-level committed amount mirrors source systems; FX fields optional but if provided fx_rate > 0. Enforce unique (facility_id, tranche_label) where tranche_label is not null. commitment_amount >= 0 when provided.'
 }
 
-Table "public"."loan_cashflows" {
-  "loan_cashflow_id" varchar(64) [pk, not null]
-  "loan_id" varchar(64) [not null, ref: < "public"."loans"."loan_id"]
-  "loan_cashflow_type" loan_cashflow_type [not null]
-  "date" date [not null]
+Table "transactions" {
+  "transaction_id" varchar(64) [pk, not null]
+  "transaction_type" tx_type [not null]
+  "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
+  "investor_id" varchar(64) [ref: < "public"."investors"."investor_id"]
+  "facility_id" varchar(64) [ref: < "public"."facilities"."facility_id"]
+  "instrument_id" varchar(64) [ref: < "public"."instruments"."instrument_id"]
   "amount" numeric(24,2) [not null]
   "currency_code" varchar(3) [not null, ref: < "public"."currencies"."currency_code"]
-  "fx_rate" numeric(18,8) [note: 'base-per-native; amount_converted = amount * fx_rate']
+  "fx_rate" numeric(18,8)
+  "fx_rate_as_of" date
+  "fx_rate_source" varchar(64)
   "amount_converted" numeric(24,2)
-  "interest_period_id" varchar(500) [ref: < "public"."loan_interest_periods"."loan_interest_period_id"]
-  "transaction_id" varchar(64) [ref: < "public"."transactions"."transaction_id"]
+  "date" date [not null]
+  "source" varchar(128) [not null]
   "reference" varchar(255)
+  "source_reference" varchar(400) [not null]
+  "name" varchar(255)
+  "description" text
   "created_at" timestamp
   "updated_at" timestamp
 
   Indexes {
-    loan_id [name: "idx_lc_loan_id"]
-    (loan_id, date) [name: "idx_lc_loan_id_date"]
-    date [name: "idx_lc_date"]
-    transaction_id [name: "idx_lc_transaction_id"]
+    fund_id [name: "idx_tx_fund_id"]
+    investor_id [name: "idx_tx_investor_id"]
+    facility_id [name: "idx_tx_facility_id"]
+    instrument_id [name: "idx_tx_instrument_id"]
+    date [name: "idx_tx_date"]
+    (transaction_type, date) [name: "idx_tx_type_date"]
+    source_reference [unique, name: "uq_tx_source_reference"]
   }
+  Note: 'Ledger-only: one row per cash movement. Non-cash lives in instrument_cashflows. Domain XOR (enforce in tests/migrations): investor events: investor_id not null; facility_id, instrument_id null; facility events: facility_id not null; investor_id, instrument_id null; instrument events: instrument_id not null; investor_id, facility_id null; fund-level: all three null. Amount/FX quality: amount >= 0; fx_rate > 0 when provided; do not set facility_id when instrument_id is present.'
 }
 
-Table "public"."investors" {
-  "investor_id" varchar(64) [pk, not null, ref: < "public"."commitments"."investor_id", ref: < "public"."transactions"."investor_id"]
-  "name" varchar(255) [not null]
-  "investor_type_id" varchar(64)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    investor_type_id [name: "idx_investor_investor_type_id"]
-  }
+Table "public"."instrument_snapshots_credit" {
+  "instrument_snapshot_id" varchar(64) [pk, not null, ref: < "public"."instrument_snapshots"."instrument_snapshot_id"]
+  "principal_outstanding" numeric(24,2)
+  "principal_outstanding_converted" numeric(24,2)
+  "undrawn_commitment" numeric(24,2)
+  "undrawn_commitment_converted" numeric(24,2)
+  "accrued_interest" numeric(24,2)
+  "accrued_interest_converted" numeric(24,2)
+  "accrued_fees" numeric(24,2)
+  "accrued_fees_converted" numeric(24,2)
+  "amortized_cost" numeric(24,2)
+  "amortized_cost_converted" numeric(24,2)
+  "expected_loss" numeric(24,2)
+  "status" varchar(32)
+  "created_at" timestamp [default: `CURRENT_TIMESTAMP`]
+  "updated_at" timestamp [default: `CURRENT_TIMESTAMP`]
+  Note: 'Null vs zero semantics mirror instrument_snapshot; non-negative when reported: principal_outstanding, undrawn_commitment, accrued_*.'
 }
 
-Table "public"."loan_interest_periods" {
-  "loan_interest_period_id" varchar(64) [pk, not null]
-  "loan_id" varchar(64) [not null, ref: < "public"."loans"."loan_id"]
-  "period_start" date [not null]
-  "period_end" date [not null]
-  "index_rate_pct" decimal(9,6)
-  "margin_pct" decimal(9,6)
-  "accrual_days" integer
-  "expected_interest_amount" numeric(24,2)
-  "payment_due_date" date
-  "actual_interest_amount" numeric(24,2)
-  "created_at" timestamp
-  "updated_at" timestamp
-
-  Indexes {
-    loan_id [name: "idx_lip_loan_id"]
-    (loan_id, period_start) [unique, name: "idx_lip_loan_id_period_start"]
-    payment_due_date [name: "idx_lip_payment_due"]
-    period_end [name: "idx_loan_interest_periods_period_end"]
-  }
+Table "public"."instrument_snapshots_equity" {
+  "instrument_snapshot_id" varchar(64) [pk, not null, ref: < "public"."instrument_snapshots"."instrument_snapshot_id"]
+  "equity_stake_pct" numeric(7,6)
+  "stake_basis" varchar(32)
+  "created_at" timestamp [default: `CURRENT_TIMESTAMP`]
+  "updated_at" timestamp [default: `CURRENT_TIMESTAMP`]
+  Note: 'Null vs zero semantics mirror instrument_snapshot.'
 }
