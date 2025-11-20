@@ -38,6 +38,7 @@ instruments as (
         instrument_id,
         fund_id,
         company_id,
+        inception_date,
         termination_date
     from {{ ref('dim_instruments') }}
 ),
@@ -53,29 +54,33 @@ instrument_valuations as (
     group by i.fund_id, s.period_end_date
 ),
 
--- Count portfolio companies (distinct companies with active instruments)
+-- Count portfolio companies (distinct companies with active instruments at each period)
 portfolio_company_counts as (
     select
-        i.fund_id,
-        s.period_end_date,
-        count(distinct i.company_id) as number_of_portfolio_companies
-    from {{ ref('fct_instrument_snapshots') }} s
-    inner join instruments i on s.instrument_id = i.instrument_id
-    where i.termination_date is null  -- Only active instruments
+        fs.fund_id,
+        fs.period_end_date,
+        count(distinct case when i.company_id is not null then i.company_id end) as number_of_portfolio_companies
+    from fund_snapshots fs
+    left join instruments i 
+        on fs.fund_id = i.fund_id
         and i.company_id is not null
-    group by i.fund_id, s.period_end_date
+        and i.inception_date <= fs.period_end_date  -- Instrument existed at this period
+        and (i.termination_date is null or i.termination_date > fs.period_end_date)  -- Still active at this period
+    group by fs.fund_id, fs.period_end_date
 ),
 
--- Count positions (distinct active instruments)
+-- Count positions (distinct active instruments at each period)
 position_counts as (
     select
-        i.fund_id,
-        s.period_end_date,
-        count(distinct i.instrument_id) as number_of_positions
-    from {{ ref('fct_instrument_snapshots') }} s
-    inner join instruments i on s.instrument_id = i.instrument_id
-    where i.termination_date is null  -- Only active instruments
-    group by i.fund_id, s.period_end_date
+        fs.fund_id,
+        fs.period_end_date,
+        count(distinct case when i.instrument_id is not null then i.instrument_id end) as number_of_positions
+    from fund_snapshots fs
+    left join instruments i 
+        on fs.fund_id = i.fund_id
+        and i.inception_date <= fs.period_end_date  -- Instrument existed at this period
+        and (i.termination_date is null or i.termination_date > fs.period_end_date)  -- Still active at this period
+    group by fs.fund_id, fs.period_end_date
 ),
 
 -- Calculate period net flows (contributions minus distributions)
