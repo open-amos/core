@@ -27,7 +27,8 @@ fund_snapshots as (
         expected_coc,
         cash_amount,
         total_distributions,
-        total_interest_income as interest_income
+        total_interest_income as interest_income,
+        nav_amount_converted
     from {{ ref('fct_fund_snapshots') }}
 ),
 
@@ -77,6 +78,25 @@ position_counts as (
     group by i.fund_id, s.period_end_date
 ),
 
+-- Calculate period net flows (contributions minus distributions)
+period_net_flows as (
+    select
+        i.fund_id,
+        date_trunc('quarter', cf.date) as period_end_date,
+        sum(
+            case 
+                when cf.instrument_cashflow_type in ('CONTRIBUTION', 'PURCHASE', 'DRAW') 
+                then cf.amount_converted
+                when cf.instrument_cashflow_type in ('DISTRIBUTION', 'DIVIDEND', 'SALE', 'PRINCIPAL', 'PREPAYMENT')
+                then -1 * cf.amount_converted
+                else 0
+            end
+        ) as period_net_flows
+    from {{ ref('fct_instrument_cashflows') }} cf
+    inner join instruments i on cf.instrument_id = i.instrument_id
+    group by i.fund_id, date_trunc('quarter', cf.date)
+),
+
 -- Calculate lines of credit outstanding from credit instrument snapshots
 credit_exposure as (
     select
@@ -96,8 +116,11 @@ fund_metrics as (
         f.fund_id,
         f.fund_name,
         fs.period_end_date,
-        -- Calculate fund NAV: sum of instrument fair values + fund cash
-        coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0) as fund_nav,
+        -- Calculate fund NAV: prefer nav_amount_converted when available, fall back to calculated NAV
+        coalesce(
+            fs.nav_amount_converted,
+            coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
+        ) as fund_nav,
         fs.total_commitments,
         fs.total_called_capital,
         -- Calculate unfunded commitment
@@ -112,6 +135,7 @@ fund_metrics as (
         coalesce(pc.number_of_positions, 0) as number_of_positions,
         coalesce(ce.lines_of_credit_outstanding, 0) as lines_of_credit_outstanding,
         fs.interest_income,
+        coalesce(pnf.period_net_flows, 0) as period_net_flows,
         current_date as as_of_date
     from funds f
     inner join fund_snapshots fs on f.fund_id = fs.fund_id
@@ -127,6 +151,9 @@ fund_metrics as (
     left join credit_exposure ce 
         on f.fund_id = ce.fund_id 
         and fs.period_end_date = ce.period_end_date
+    left join period_net_flows pnf
+        on f.fund_id = pnf.fund_id
+        and fs.period_end_date = pnf.period_end_date
 ),
 
 -- Calculate peak outstanding credit using window function
@@ -154,6 +181,7 @@ final_metrics as (
             rows between unbounded preceding and current row
         ) as peak_outstanding_credit,
         interest_income,
+        period_net_flows,
         as_of_date
     from fund_metrics
 )

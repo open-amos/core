@@ -912,7 +912,7 @@ models:
           - not_null
       
       - name: fund_nav
-        description: "Fund Net Asset Value = sum of instrument fair values + fund cash amount"
+        description: "Fund Net Asset Value - prefers nav_amount_converted from fund snapshots when available, otherwise calculated as sum of instrument fair values + fund cash amount for backward compatibility"
         tests:
           - not_null
       
@@ -964,6 +964,11 @@ models:
       
       - name: interest_income
         description: "Total interest income from fund snapshots"
+      
+      - name: period_net_flows
+        description: "Net cashflows for the period = contributions minus distributions, aggregated from instrument cashflows. Positive values indicate net contributions (capital deployed), negative values indicate net distributions (capital returned)"
+        tests:
+          - not_null
       
       - name: as_of_date
         description: "Date when metrics were calculated"
