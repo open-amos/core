@@ -47,7 +47,7 @@ with credit_snapshots as (
     from {{ ref('int_instrument_snapshots_curated') }} s
     inner join {{ ref('dim_instruments') }} i
         on s.instrument_id = i.instrument_id
-    where i.instrument_type = 'LOAN'
+    where i.instrument_type = 'CREDIT'
         and s.principal_outstanding is not null
 )
 
