@@ -91,6 +91,11 @@ Enum "tx_type" {
     "LOAN_FEE_RECEIPT"
 }
 
+Enum "fund_type" {
+    "EQUITY"
+    "CREDIT"
+}
+
 Enum "valuation_type" {
     "ACTUAL"
     "FORECAST"
@@ -107,7 +112,7 @@ Table "public"."currencies" {
 Table "public"."funds" {
   "fund_id" varchar(64) [pk, not null]
   "name" varchar(255) [not null]
-  "type" varchar(64)
+  "type" fund_type [not null]
   "vintage" integer
   "management_fee" decimal(7,4)
   "hurdle" decimal(7,4)

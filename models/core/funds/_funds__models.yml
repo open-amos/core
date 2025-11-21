@@ -16,7 +16,11 @@ models:
           - not_null
       
       - name: type
-        description: "Fund type (e.g., Private Equity, Venture Capital, Credit)"
+        description: "Fund type - Enum: EQUITY, CREDIT"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['EQUITY', 'CREDIT']
       
       - name: vintage
         description: "Vintage year of the fund"
