@@ -591,8 +591,9 @@ models:
   - name: metrics_position_performance
     description: |
       Position-level investment performance metrics providing comprehensive returns analysis 
-      including MOIC, IRR, and cashflow metrics for each investment position. Combines valuation 
-      snapshots with cashflow history to calculate realized and unrealized returns.
+      for both equity and credit instruments. Combines valuation snapshots with cashflow history 
+      to calculate strategy-specific metrics: MOIC and IRR for equity positions, principal 
+      outstanding and yield for credit positions.
       
       **Grain**: One row per instrument per period_end_date (latest snapshot)
       
@@ -600,38 +601,41 @@ models:
       
       **Use Cases**:
       - Investment-level returns analysis and reporting
-      - MOIC and IRR calculations for individual positions
+      - MOIC and IRR calculations for equity positions
+      - Credit exposure and yield tracking for credit positions
       - Portfolio performance attribution
-      - Realized vs unrealized value tracking
-      - Ownership percentage tracking over time
+      - Realized vs unrealized value tracking for equity
+      - Ownership percentage tracking over time for equity
+      - Maturity ladder and yield analysis for credit
       
       **Example Query**:
       ```sql
-      -- Top performing investments by MOIC
+      -- Top performing equity investments by MOIC
       SELECT 
         fund_name,
         company_name,
         instrument_type,
         cumulative_invested,
-        total_value,
-        gross_moic,
-        gross_irr,
+        fair_value,
+        cumulative_distributions,
+        moic,
+        equity_irr,
         holding_period_years
       FROM metrics_position_performance
-      WHERE gross_moic IS NOT NULL
-      ORDER BY gross_moic DESC
+      WHERE instrument_type = 'EQUITY' AND moic IS NOT NULL
+      ORDER BY moic DESC
       LIMIT 10;
       
-      -- Portfolio summary by fund
+      -- Credit portfolio summary
       SELECT 
         fund_name,
-        COUNT(*) as position_count,
-        SUM(cumulative_invested) as total_invested,
-        SUM(realized_proceeds) as total_realized,
-        SUM(current_fair_value) as total_unrealized,
-        SUM(total_value) as total_value,
-        SUM(total_value) / NULLIF(SUM(cumulative_invested), 0) as portfolio_moic
+        COUNT(*) as loan_count,
+        SUM(principal_outstanding) as total_principal,
+        SUM(undrawn_commitment) as total_undrawn,
+        AVG(all_in_yield) as avg_yield,
+        AVG(spread_bps) as avg_spread
       FROM metrics_position_performance
+      WHERE instrument_type = 'CREDIT'
       GROUP BY fund_name;
       ```
     columns:
@@ -645,6 +649,11 @@ models:
       
       - name: instrument_name
         description: "Instrument name from canonical dimension"
+        tests:
+          - not_null
+      
+      - name: instrument_type
+        description: "Type of instrument (EQUITY, CREDIT, etc.)"
         tests:
           - not_null
       
@@ -666,6 +675,9 @@ models:
         tests:
           - not_null
       
+      - name: fund_type
+        description: "Type of fund (EQUITY, CREDIT, etc.)"
+      
       - name: company_id
         description: "Company identifier - Foreign Key to dim_companies"
         tests:
@@ -676,11 +688,6 @@ models:
       - name: company_name
         description: "Company name from canonical dimension"
       
-      - name: instrument_type
-        description: "Type of instrument (EQUITY, CREDIT, etc.)"
-        tests:
-          - not_null
-      
       - name: initial_investment_date
         description: "Date of initial investment (inception_date from dim_instruments)"
         tests:
@@ -689,45 +696,67 @@ models:
       - name: exit_date
         description: "Date of exit/termination if applicable (termination_date from dim_instruments)"
       
-      - name: initial_cost
-        description: "Initial cost basis of the investment, converted to fund base currency"
-      
-      - name: cumulative_invested
-        description: "Total capital invested through contributions, purchases, and draws (always positive)"
-        tests:
-          - not_null
-      
-      - name: realized_proceeds
-        description: "Total proceeds received through sales, distributions, dividends, principal, and prepayments (always positive)"
-        tests:
-          - not_null
-      
-      - name: current_fair_value
-        description: "Current fair market value from latest instrument snapshot"
-        tests:
-          - not_null
-      
-      - name: total_value
-        description: "Total value = realized_proceeds + current_fair_value (TVPI numerator)"
-        tests:
-          - not_null
-      
-      - name: gross_moic
-        description: "Gross Multiple on Invested Capital = total_value / cumulative_invested (TVPI)"
-      
-      - name: gross_irr
-        description: "Gross Internal Rate of Return approximation using POWER function: (MOIC^(1/holding_period_years)) - 1"
-      
-      - name: ownership_pct_initial
-        description: "Initial ownership percentage from dim_instruments_equity"
-      
-      - name: ownership_pct_current
-        description: "Current ownership percentage from latest equity snapshot"
-      
       - name: holding_period_years
         description: "Holding period in years from inception_date to exit_date (or current date if not exited)"
         tests:
           - not_null
+      
+      - name: initial_cost
+        description: "Initial cost basis of the equity investment, converted to fund base currency (NULL for credit instruments)"
+      
+      - name: cumulative_invested
+        description: "Total capital invested through contributions, purchases, and draws for equity instruments (NULL for credit instruments)"
+      
+      - name: cumulative_distributions
+        description: "Total proceeds received through sales, distributions, dividends for equity instruments (NULL for credit instruments)"
+      
+      - name: fair_value
+        description: "Current fair market value from latest instrument snapshot for equity instruments (NULL for credit instruments)"
+      
+      - name: ownership_pct_initial
+        description: "Initial ownership percentage from dim_instruments_equity (NULL for credit instruments)"
+      
+      - name: ownership_pct_current
+        description: "Current ownership percentage from latest equity snapshot (NULL for credit instruments)"
+      
+      - name: moic
+        description: "Gross Multiple on Invested Capital for equity instruments = (cumulative_distributions + fair_value) / cumulative_invested (NULL for credit instruments)"
+      
+      - name: equity_irr
+        description: "Gross Internal Rate of Return approximation for equity instruments using POWER function: (MOIC^(1/holding_period_years)) - 1 (NULL for credit instruments)"
+      
+      - name: principal_outstanding
+        description: "Current principal outstanding for credit instruments (NULL for equity instruments)"
+      
+      - name: undrawn_commitment
+        description: "Undrawn commitment amount for credit instruments (NULL for equity instruments)"
+      
+      - name: accrued_interest
+        description: "Accrued interest for credit instruments (NULL for equity instruments)"
+      
+      - name: commitment_amount
+        description: "Total commitment amount for credit instruments (NULL for equity instruments)"
+      
+      - name: spread_bps
+        description: "Spread in basis points for credit instruments (NULL for equity instruments)"
+      
+      - name: interest_index
+        description: "Interest rate index (e.g., SOFR, EURIBOR) for credit instruments (NULL for equity instruments)"
+      
+      - name: maturity_date
+        description: "Maturity date for credit instruments (NULL for equity instruments)"
+      
+      - name: security_rank
+        description: "Security rank (e.g., SENIOR_SECURED, MEZZANINE) for credit instruments (NULL for equity instruments)"
+      
+      - name: maturity_year
+        description: "Year extracted from maturity_date for credit instruments (NULL for equity instruments)"
+      
+      - name: days_to_maturity
+        description: "Days until maturity for credit instruments (NULL for equity instruments)"
+      
+      - name: all_in_yield
+        description: "All-in yield (spread + base rate) for credit instruments, currently calculated as spread_bps / 10000.0 (NULL for equity instruments)"
 
   - name: metrics_returns_cashflows
     description: |
