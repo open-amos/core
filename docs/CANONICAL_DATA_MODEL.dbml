@@ -37,10 +37,7 @@ Enum "instrument_cashflow_type" {
 
 Enum "instrument_type" {
     "EQUITY"
-    "LOAN"
-    "CONVERTIBLE"
-    "WARRANT"
-    "FUND_INTEREST"
+    "CREDIT"
 }
 
 Enum "interest_index" {

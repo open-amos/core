@@ -30,11 +30,11 @@ models:
         description: "Name of the instrument"
       
       - name: instrument_type
-        description: "Type of instrument - Enum: EQUITY, LOAN, CONVERTIBLE, WARRANT, FUND_INTEREST"
+        description: "Type of instrument - Enum: EQUITY, CREDIT"
         tests:
           - not_null
           - accepted_values:
-              values: ['EQUITY', 'LOAN', 'CONVERTIBLE', 'WARRANT', 'FUND_INTEREST']
+              values: ['EQUITY', 'CREDIT']
       
       - name: inception_date
         description: "Date when the instrument was created or acquired"
@@ -114,7 +114,7 @@ models:
         description: "Timestamp when the record was last updated"
 
   - name: dim_instruments_credit
-    description: "Credit-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='LOAN'."
+    description: "Credit-specific attributes for instruments. 1:1 relationship with dim_instruments for instrument_type='CREDIT'."
     tests:
       - dbt_utils.equal_rowcount:
           compare_model: ref('int_expect_instruments_credit')
