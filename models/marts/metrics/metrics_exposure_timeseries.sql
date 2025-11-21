@@ -13,22 +13,56 @@ with latest_instrument_snapshots as (
         snap.fair_value_converted,
         snap.currency_code,
         snap.fx_rate,
+        inst.instrument_type,
         row_number() over (partition by snap.instrument_id order by snap.period_end_date desc) as rn
     from {{ ref('fct_instrument_snapshots') }} snap
     inner join {{ ref('dim_instruments') }} inst on snap.instrument_id = inst.instrument_id
+),
+
+latest_credit_snapshots as (
+    select
+        snap.instrument_id,
+        snap.period_end_date,
+        sc.principal_outstanding_converted,
+        sc.undrawn_commitment_converted,
+        ic.maturity_date,
+        ic.security_rank,
+        row_number() over (partition by snap.instrument_id order by snap.period_end_date desc) as rn
+    from {{ ref('fct_instrument_snapshots') }} snap
+    inner join {{ ref('dim_instruments') }} inst on snap.instrument_id = inst.instrument_id
+    inner join {{ ref('fct_instrument_snapshots_credit') }} sc on snap.instrument_snapshot_id = sc.instrument_snapshot_id
+    inner join {{ ref('dim_instruments_credit') }} ic on snap.instrument_id = ic.instrument_id
+    where inst.instrument_type = 'CREDIT'
 ),
 
 deployed_capital_by_instrument as (
     select
         lis.instrument_id,
         lis.period_end_date,
-        coalesce(lis.fair_value_converted,
-                 case
-                     when lis.fx_rate is not null then coalesce(lis.fair_value, 0) * lis.fx_rate
-                     else coalesce(lis.fair_value, 0)
-                 end) as fair_value_usd
+        lis.instrument_type,
+        case
+            when lis.instrument_type = 'EQUITY' then
+                coalesce(lis.fair_value_converted,
+                         case
+                             when lis.fx_rate is not null then coalesce(lis.fair_value, 0) * lis.fx_rate
+                             else coalesce(lis.fair_value, 0)
+                         end)
+            when lis.instrument_type = 'CREDIT' then
+                coalesce(lcs.principal_outstanding_converted, 0) + coalesce(lcs.undrawn_commitment_converted, 0)
+            else 0
+        end as exposure_usd,
+        lcs.maturity_date,
+        extract(year from lcs.maturity_date) as maturity_year,
+        lcs.security_rank
     from latest_instrument_snapshots lis
-    where lis.rn = 1 and lis.fair_value is not null
+    left join latest_credit_snapshots lcs 
+        on lis.instrument_id = lcs.instrument_id 
+        and lcs.rn = 1
+    where lis.rn = 1 
+        and (
+            (lis.instrument_type = 'EQUITY' and lis.fair_value is not null)
+            or (lis.instrument_type = 'CREDIT' and (lcs.principal_outstanding_converted is not null or lcs.undrawn_commitment_converted is not null))
+        )
 ),
 
 -- Base: deployed capital by all dimensions
@@ -36,12 +70,15 @@ deployed_base as (
     select
         inst.fund_id,
         f.name as fund_name,
+        dci.instrument_type,
         coalesce(c.region, 'Unknown Region') as region,
         coalesce(bc.country_code, 'UNKNOWN') as country_code,
         coalesce(c.name, 'Unknown Country') as country_name,
         coalesce(cast(bii.industry_id as text), 'UNKNOWN') as industry_id,
         coalesce(di.name, 'Unknown Industry') as industry_name,
-        sum(dci.fair_value_usd 
+        dci.maturity_year,
+        dci.security_rank,
+        sum(dci.exposure_usd 
             * coalesce(bii.allocation_pct / 100.0, 1.0)
             * case
                 when bc.allocation_pct is not null then bc.allocation_pct / 100.0
@@ -60,11 +97,14 @@ deployed_base as (
     left join {{ ref('dim_industries') }} di on bii.industry_id = di.industry_id
     group by 
         inst.fund_id, f.name,
+        dci.instrument_type,
         coalesce(c.region, 'Unknown Region'),
         coalesce(bc.country_code, 'UNKNOWN'),
         coalesce(c.name, 'Unknown Country'),
         coalesce(cast(bii.industry_id as text), 'UNKNOWN'),
-        coalesce(di.name, 'Unknown Industry')
+        coalesce(di.name, 'Unknown Industry'),
+        dci.maturity_year,
+        dci.security_rank
 ),
 
 -- Pipeline opportunities
@@ -137,22 +177,31 @@ month_spine as (
 dimension_combinations as (
     select distinct 
         fund_id, fund_name, 
+        instrument_type,
         region, country_code, country_name,
         industry_id, industry_name,
+        maturity_year,
+        security_rank,
         stage_id, stage_name
     from (
         select 
             fund_id, fund_name,
+            instrument_type,
             region, country_code, country_name,
             industry_id, industry_name,
+            maturity_year,
+            security_rank,
             cast(null as text) as stage_id,
             cast(null as text) as stage_name
         from deployed_base
         union
         select 
             fund_id, fund_name,
+            cast(null as text) as instrument_type,
             region, country_code, country_name,
             industry_id, industry_name,
+            cast(null as integer) as maturity_year,
+            cast(null as text) as security_rank,
             cast(stage_id as text) as stage_id,
             stage_name
         from pipeline_base
@@ -163,8 +212,11 @@ full_spine as (
     select 
         ms.exposure_month, 
         dc.fund_id, dc.fund_name,
+        dc.instrument_type,
         dc.region, dc.country_code, dc.country_name,
         dc.industry_id, dc.industry_name,
+        dc.maturity_year,
+        dc.security_rank,
         dc.stage_id, dc.stage_name
     from month_spine ms
     cross join dimension_combinations dc
@@ -175,8 +227,11 @@ cumulative_closed_pipeline as (
     select
         sp.exposure_month,
         sp.fund_id, sp.fund_name,
+        sp.instrument_type,
         sp.region, sp.country_code, sp.country_name,
         sp.industry_id, sp.industry_name,
+        sp.maturity_year,
+        sp.security_rank,
         sp.stage_id, sp.stage_name,
         coalesce(sum(pb.pipeline_value_usd), 0) as closed_pipeline_usd
     from full_spine sp
@@ -190,8 +245,11 @@ cumulative_closed_pipeline as (
     group by 
         sp.exposure_month,
         sp.fund_id, sp.fund_name,
+        sp.instrument_type,
         sp.region, sp.country_code, sp.country_name,
         sp.industry_id, sp.industry_name,
+        sp.maturity_year,
+        sp.security_rank,
         sp.stage_id, sp.stage_name
 ),
 
@@ -202,11 +260,14 @@ final as (
         extract(month from ccp.exposure_month) as exposure_month_num,
         ccp.fund_id,
         ccp.fund_name,
+        ccp.instrument_type,
         ccp.region,
         ccp.country_code,
         ccp.country_name,
         ccp.industry_id,
         ccp.industry_name,
+        ccp.maturity_year,
+        ccp.security_rank,
         ccp.stage_id,
         ccp.stage_name,
         coalesce(db.deployed_capital_usd, 0) as deployed_capital_usd,
@@ -221,10 +282,13 @@ final as (
     from cumulative_closed_pipeline ccp
     left join deployed_base db
         on ccp.fund_id = db.fund_id
+        and coalesce(ccp.instrument_type, 'NULL') = coalesce(db.instrument_type, 'NULL')
         and ccp.region = db.region
         and ccp.country_code = db.country_code
         and ccp.industry_id = db.industry_id
+        and coalesce(cast(ccp.maturity_year as text), 'NULL') = coalesce(cast(db.maturity_year as text), 'NULL')
+        and coalesce(ccp.security_rank, 'NULL') = coalesce(db.security_rank, 'NULL')
 )
 
 select * from final
-order by fund_name, region, country_name, industry_name, stage_name, exposure_month
+order by fund_name, instrument_type, region, country_name, industry_name, maturity_year, security_rank, stage_name, exposure_month
