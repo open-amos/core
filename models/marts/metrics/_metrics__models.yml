@@ -963,12 +963,21 @@ models:
       
       - name: dpi
         description: "Distributions to Paid-In capital ratio (DPI)"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'CREDIT'
       
       - name: rvpi
         description: "Residual Value to Paid-In capital ratio (RVPI)"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'CREDIT'
       
       - name: tvpi
         description: "Total Value to Paid-In capital ratio = DPI + RVPI"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'CREDIT'
       
       - name: expected_coc
         description: "Expected cash-on-cash return"
@@ -990,6 +999,24 @@ models:
       
       - name: peak_outstanding_credit
         description: "Peak outstanding credit calculated using window function with UNBOUNDED PRECEDING"
+      
+      - name: total_exposure
+        description: "Total credit exposure (principal outstanding + undrawn commitment) for credit funds (NULL for equity funds)"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'EQUITY'
+      
+      - name: principal_outstanding
+        description: "Total principal outstanding for credit funds (NULL for equity funds)"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'EQUITY'
+      
+      - name: undrawn_commitment
+        description: "Total undrawn commitment for credit funds (NULL for equity funds)"
+        tests:
+          - null_for_fund_type:
+              fund_type_value: 'EQUITY'
       
       - name: interest_income
         description: "Total interest income from fund snapshots"

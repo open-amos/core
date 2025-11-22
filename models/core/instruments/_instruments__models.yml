@@ -69,6 +69,7 @@ models:
       - name: share_class_id
         description: "Share class identifier - Foreign Key to dim_share_classes"
         tests:
+          - not_null
           - relationships:
               to: ref('dim_share_classes')
               field: share_class_id
