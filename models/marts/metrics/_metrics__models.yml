@@ -719,8 +719,8 @@ models:
       - name: moic
         description: "Gross Multiple on Invested Capital for equity instruments = (realized_proceeds + fair_value) / cost_basis (NULL for credit instruments)"
       
-      - name: equity_irr
-        description: "Gross Internal Rate of Return approximation for equity instruments using POWER function: (MOIC^(1/holding_period_years)) - 1. Note: This is an approximation, not true XIRR from cashflows (NULL for credit instruments)"
+      - name: equity_irr_approx
+        description: "APPROXIMATED Gross Internal Rate of Return for equity instruments using simplified formula: (MOIC^(1/holding_period_years)) - 1. WARNING: This is NOT true XIRR from cashflows. Does not account for interim cashflows, follow-on investments, or partial exits. Always label as 'Approx IRR' or 'IRR (Approx)' in visualizations to avoid confusion. (NULL for credit instruments)"
       
       - name: drawn_amount
         description: "Total drawn amount for credit instruments = sum(DRAW) - sum(PRINCIPAL + PREPAYMENT) from cashflows (NULL for equity instruments)"

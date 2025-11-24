@@ -233,7 +233,10 @@ final_metrics as (
         end as moic,
         
         -- Calculate equity IRR approximation using MOIC and holding period
-        -- Note: This is an approximation, not true XIRR from cashflows
+        -- IMPORTANT: This is an APPROXIMATION, not true XIRR from cashflows
+        -- Formula: (MOIC ^ (1/holding_period_years)) - 1
+        -- Limitations: Does not account for interim cashflows, follow-on investments, or partial exits
+        -- Always label as "Approx IRR" or "IRR (Approx)" in visualizations
         case
             when instrument_type = 'EQUITY' 
                 and cost_basis > 0
@@ -244,7 +247,7 @@ final_metrics as (
                 1.0 / nullif(holding_period_years, 0)
             ) - 1
             else null
-        end as equity_irr,
+        end as equity_irr_approx,
         
         -- Credit metrics
         drawn_amount,
