@@ -22,17 +22,16 @@ Enum "facility_type" {
 }
 
 Enum "instrument_cashflow_type" {
-    "CONTRIBUTION"
-    "DISTRIBUTION"
+    "INVESTMENT"
+    "RETURN_OF_CAPITAL"
     "DIVIDEND"
-    "INTEREST"
-    "FEE"
-    "PRINCIPAL"
+    "EXIT_PROCEEDS"
     "DRAW"
+    "PRINCIPAL"
+    "INTEREST"
     "PREPAYMENT"
+    "FEE"
     "OTHER"
-    "PURCHASE"
-    "SALE"
 }
 
 Enum "instrument_type" {
@@ -344,7 +343,7 @@ Table "public"."instrument_cashflows" {
     transaction_id [name: "idx_instr_cf_tx_id"]
     (instrument_id, instrument_cashflow_type, date) [name: "idx_instr_cf_type_date"]
   }
-  Note: 'Data quality checks to enforce in SQL: amount >= 0 when non_cash=false; fx_rate > 0 when provided.'
+  Note: 'Canonical cashflow taxonomy: Equity outflows (INVESTMENT), Equity inflows (EXIT_PROCEEDS, RETURN_OF_CAPITAL, DIVIDEND), Credit outflows (DRAW), Credit inflows (PRINCIPAL, INTEREST, PREPAYMENT), Shared (FEE, OTHER). Data quality checks: amount >= 0 when non_cash=false; fx_rate > 0 when provided.'
 }
 
 Table "public"."opportunity_countries" {
