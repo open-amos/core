@@ -60,13 +60,13 @@ cashflows_enriched as (
         cf.fx_rate,
         -- Classify direction based on cashflow type
         case 
-            when cf.instrument_cashflow_type in ('CONTRIBUTION', 'PURCHASE', 'DRAW') 
+            when cf.instrument_cashflow_type in ('INVESTMENT', 'DRAW') 
             then 'outflow'
             else 'inflow'
         end as direction,
-        -- Calculate signed amount for IRR calculations
+        -- Calculate signed amount for IRR calculations (negative for outflows, positive for inflows)
         case 
-            when cf.instrument_cashflow_type in ('CONTRIBUTION', 'PURCHASE', 'DRAW') 
+            when cf.instrument_cashflow_type in ('INVESTMENT', 'DRAW') 
             then -1 * cf.amount_converted
             else cf.amount_converted
         end as signed_amount

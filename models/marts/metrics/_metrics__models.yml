@@ -701,14 +701,11 @@ models:
         tests:
           - not_null
       
-      - name: initial_cost
-        description: "Initial cost basis of the equity investment, converted to fund base currency (NULL for credit instruments)"
+      - name: cost_basis
+        description: "Cost basis of the equity investment from initial_cost_converted in dim_instruments_equity (NULL for credit instruments). This is the authoritative denominator for MOIC calculations."
       
-      - name: cumulative_invested
-        description: "Total capital invested through contributions, purchases, and draws for equity instruments (NULL for credit instruments)"
-      
-      - name: cumulative_distributions
-        description: "Total proceeds received through sales, distributions, dividends for equity instruments (NULL for credit instruments)"
+      - name: realized_proceeds
+        description: "Total proceeds received through exits, distributions, and dividends for equity instruments (NULL for credit instruments)"
       
       - name: fair_value
         description: "Current fair market value from latest instrument snapshot for equity instruments (NULL for credit instruments)"
@@ -720,13 +717,22 @@ models:
         description: "Current ownership percentage from latest equity snapshot (NULL for credit instruments)"
       
       - name: moic
-        description: "Gross Multiple on Invested Capital for equity instruments = (cumulative_distributions + fair_value) / cumulative_invested (NULL for credit instruments)"
+        description: "Gross Multiple on Invested Capital for equity instruments = (realized_proceeds + fair_value) / cost_basis (NULL for credit instruments)"
       
       - name: equity_irr
-        description: "Gross Internal Rate of Return approximation for equity instruments using POWER function: (MOIC^(1/holding_period_years)) - 1 (NULL for credit instruments)"
+        description: "Gross Internal Rate of Return approximation for equity instruments using POWER function: (MOIC^(1/holding_period_years)) - 1. Note: This is an approximation, not true XIRR from cashflows (NULL for credit instruments)"
+      
+      - name: drawn_amount
+        description: "Total drawn amount for credit instruments = sum(DRAW) - sum(PRINCIPAL + PREPAYMENT) from cashflows (NULL for equity instruments)"
+      
+      - name: interest_income
+        description: "Total interest income received for credit instruments (NULL for equity instruments)"
+      
+      - name: principal_repaid
+        description: "Total principal repaid for credit instruments (NULL for equity instruments)"
       
       - name: principal_outstanding
-        description: "Current principal outstanding for credit instruments (NULL for equity instruments)"
+        description: "Current principal outstanding from latest credit snapshot (NULL for equity instruments)"
       
       - name: undrawn_commitment
         description: "Undrawn commitment amount for credit instruments (NULL for equity instruments)"
@@ -757,6 +763,9 @@ models:
       
       - name: all_in_yield
         description: "All-in yield (spread + base rate) for credit instruments, currently calculated as spread_bps / 10000.0 (NULL for equity instruments)"
+      
+      - name: utilization_rate
+        description: "Utilization rate for credit instruments = principal_outstanding / commitment_amount (NULL for equity instruments)"
 
   - name: metrics_returns_cashflows
     description: |
@@ -839,11 +848,11 @@ models:
           - not_null
       
       - name: cashflow_type
-        description: "Type of cashflow - CONTRIBUTION, PURCHASE, DRAW (outflows) or DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, PREPAYMENT, SALE, OTHER (inflows)"
+        description: "Type of cashflow - Canonical taxonomy. Equity outflows: INVESTMENT. Equity inflows: EXIT_PROCEEDS, RETURN_OF_CAPITAL, DIVIDEND. Credit outflows: DRAW. Credit inflows: PRINCIPAL, PREPAYMENT, INTEREST. Shared: FEE, OTHER"
         tests:
           - not_null
           - accepted_values:
-              values: ['CONTRIBUTION', 'DISTRIBUTION', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER', 'PURCHASE', 'SALE']
+              values: ['INVESTMENT', 'EXIT_PROCEEDS', 'RETURN_OF_CAPITAL', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER']
       
       - name: cashflow_amount
         description: "Cashflow amount in fund base currency (always positive, use direction or signed_amount for IRR calculations)"
@@ -862,7 +871,7 @@ models:
         description: "Foreign exchange rate used for conversion to fund base currency"
       
       - name: direction
-        description: "Cashflow direction - 'outflow' for investments (CONTRIBUTION, PURCHASE, DRAW) or 'inflow' for returns (all other types)"
+        description: "Cashflow direction - 'outflow' for investments (INVESTMENT, DRAW) or 'inflow' for returns (all other types)"
         tests:
           - not_null
           - accepted_values:

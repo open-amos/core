@@ -119,23 +119,34 @@ current_credit_metrics as (
     where rn = 1
 ),
 
--- Calculate cumulative invested (contributions)
-instrument_contributions as (
+-- Calculate drawn amount for credit instruments (from cashflows)
+credit_drawn_amount as (
     select
         instrument_id,
-        sum(amount_converted) as cumulative_invested
+        sum(case when instrument_cashflow_type = 'DRAW' then amount_converted else 0 end) -
+        sum(case when instrument_cashflow_type in ('PRINCIPAL', 'PREPAYMENT') then amount_converted else 0 end) as drawn_amount,
+        sum(case when instrument_cashflow_type = 'INTEREST' then amount_converted else 0 end) as interest_income
     from {{ ref('fct_instrument_cashflows') }}
-    where instrument_cashflow_type in ('CONTRIBUTION', 'PURCHASE', 'DRAW')
     group by instrument_id
 ),
 
--- Calculate realized proceeds (distributions)
-instrument_distributions as (
+-- Calculate realized proceeds for equity (distributions and exits)
+equity_realized_proceeds as (
     select
         instrument_id,
         sum(amount_converted) as realized_proceeds
     from {{ ref('fct_instrument_cashflows') }}
-    where instrument_cashflow_type in ('SALE', 'DISTRIBUTION', 'DIVIDEND', 'PRINCIPAL', 'PREPAYMENT')
+    where instrument_cashflow_type in ('EXIT_PROCEEDS', 'RETURN_OF_CAPITAL', 'DIVIDEND')
+    group by instrument_id
+),
+
+-- Calculate realized proceeds for credit (principal repayments)
+credit_realized_proceeds as (
+    select
+        instrument_id,
+        sum(amount_converted) as realized_proceeds
+    from {{ ref('fct_instrument_cashflows') }}
+    where instrument_cashflow_type in ('PRINCIPAL', 'PREPAYMENT')
     group by instrument_id
 ),
 
@@ -155,14 +166,16 @@ position_metrics as (
         i.termination_date as exit_date,
         
         -- Equity-specific metrics (NULL for credit instruments)
-        case when i.instrument_type = 'EQUITY' then ie.initial_cost_converted else null end as initial_cost,
-        case when i.instrument_type = 'EQUITY' then coalesce(ic.cumulative_invested, 0) else null end as cumulative_invested,
-        case when i.instrument_type = 'EQUITY' then coalesce(id.realized_proceeds, 0) else null end as cumulative_distributions,
+        case when i.instrument_type = 'EQUITY' then ie.initial_cost_converted else null end as cost_basis,
+        case when i.instrument_type = 'EQUITY' then coalesce(erp.realized_proceeds, 0) else null end as realized_proceeds,
         case when i.instrument_type = 'EQUITY' then coalesce(cv.current_fair_value, 0) else null end as fair_value,
         case when i.instrument_type = 'EQUITY' then ie.initial_ownership_pct else null end as ownership_pct_initial,
         case when i.instrument_type = 'EQUITY' then eo.ownership_pct_current else null end as ownership_pct_current,
         
         -- Credit-specific metrics (NULL for equity instruments)
+        case when i.instrument_type = 'CREDIT' then coalesce(cda.drawn_amount, 0) else null end as drawn_amount,
+        case when i.instrument_type = 'CREDIT' then coalesce(cda.interest_income, 0) else null end as interest_income,
+        case when i.instrument_type = 'CREDIT' then coalesce(crp.realized_proceeds, 0) else null end as principal_repaid,
         case when i.instrument_type = 'CREDIT' then ccm.principal_outstanding else null end as principal_outstanding,
         case when i.instrument_type = 'CREDIT' then ccm.undrawn_commitment else null end as undrawn_commitment,
         case when i.instrument_type = 'CREDIT' then ccm.accrued_interest else null end as accrued_interest,
@@ -183,8 +196,9 @@ position_metrics as (
     left join current_valuations cv on i.instrument_id = cv.instrument_id
     left join current_equity_ownership eo on i.instrument_id = eo.instrument_id
     left join current_credit_metrics ccm on i.instrument_id = ccm.instrument_id
-    left join instrument_contributions ic on i.instrument_id = ic.instrument_id
-    left join instrument_distributions id on i.instrument_id = id.instrument_id
+    left join equity_realized_proceeds erp on i.instrument_id = erp.instrument_id
+    left join credit_drawn_amount cda on i.instrument_id = cda.instrument_id
+    left join credit_realized_proceeds crp on i.instrument_id = crp.instrument_id
     where cv.period_end_date is not null  -- Only include instruments with snapshots
 ),
 
@@ -205,34 +219,37 @@ final_metrics as (
         holding_period_years,
         
         -- Equity metrics
-        initial_cost,
-        cumulative_invested,
-        cumulative_distributions,
+        cost_basis,
+        realized_proceeds,
         fair_value,
         ownership_pct_initial,
         ownership_pct_current,
         
-        -- Calculate MOIC for equity instruments only
+        -- Calculate MOIC for equity instruments only (using cost_basis from dimension)
         case
-            when instrument_type = 'EQUITY' and cumulative_invested > 0
-            then (coalesce(cumulative_distributions, 0) + coalesce(fair_value, 0)) / nullif(cumulative_invested, 0)
+            when instrument_type = 'EQUITY' and cost_basis > 0
+            then (coalesce(realized_proceeds, 0) + coalesce(fair_value, 0)) / nullif(cost_basis, 0)
             else null
         end as moic,
         
-        -- Calculate equity IRR using MOIC and holding period approximation
+        -- Calculate equity IRR approximation using MOIC and holding period
+        -- Note: This is an approximation, not true XIRR from cashflows
         case
             when instrument_type = 'EQUITY' 
-                and cumulative_invested > 0
+                and cost_basis > 0
                 and holding_period_years > 0
-                and (coalesce(cumulative_distributions, 0) + coalesce(fair_value, 0)) / nullif(cumulative_invested, 0) > 0
+                and (coalesce(realized_proceeds, 0) + coalesce(fair_value, 0)) / nullif(cost_basis, 0) > 0
             then power(
-                (coalesce(cumulative_distributions, 0) + coalesce(fair_value, 0)) / nullif(cumulative_invested, 0),
+                (coalesce(realized_proceeds, 0) + coalesce(fair_value, 0)) / nullif(cost_basis, 0),
                 1.0 / nullif(holding_period_years, 0)
             ) - 1
             else null
         end as equity_irr,
         
         -- Credit metrics
+        drawn_amount,
+        interest_income,
+        principal_repaid,
         principal_outstanding,
         undrawn_commitment,
         accrued_interest,
@@ -241,6 +258,13 @@ final_metrics as (
         interest_index,
         maturity_date,
         security_rank,
+        
+        -- Calculate utilization rate for credit instruments
+        case
+            when instrument_type = 'CREDIT' and commitment_amount > 0
+            then principal_outstanding / nullif(commitment_amount, 0)
+            else null
+        end as utilization_rate,
         
         -- Calculate maturity_year for credit instruments
         case

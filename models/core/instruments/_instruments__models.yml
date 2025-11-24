@@ -407,11 +407,11 @@ models:
               field: instrument_id
       
       - name: instrument_cashflow_type
-        description: "Type of cashflow - Enum: CONTRIBUTION, DISTRIBUTION, DIVIDEND, INTEREST, FEE, PRINCIPAL, DRAW, PREPAYMENT, OTHER, PURCHASE, SALE"
+        description: "Type of cashflow - Canonical taxonomy. Equity: INVESTMENT, RETURN_OF_CAPITAL, DIVIDEND, EXIT_PROCEEDS. Credit: DRAW, PRINCIPAL, INTEREST, PREPAYMENT. Shared: FEE, OTHER"
         tests:
           - not_null
           - accepted_values:
-              values: ['CONTRIBUTION', 'DISTRIBUTION', 'DIVIDEND', 'INTEREST', 'FEE', 'PRINCIPAL', 'DRAW', 'PREPAYMENT', 'OTHER', 'PURCHASE', 'SALE']
+              values: ['INVESTMENT', 'RETURN_OF_CAPITAL', 'DIVIDEND', 'EXIT_PROCEEDS', 'DRAW', 'PRINCIPAL', 'INTEREST', 'PREPAYMENT', 'FEE', 'OTHER']
       
       - name: date
         description: "Date of the cashflow"
