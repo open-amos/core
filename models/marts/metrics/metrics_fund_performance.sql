@@ -46,6 +46,7 @@ instruments as (
 ),
 
 -- Calculate sum of instrument fair values per fund per period (equity instruments only)
+-- This is used to compute NAV from instrument-level data
 instrument_valuations as (
     select
         i.fund_id,
@@ -72,18 +73,22 @@ portfolio_company_counts as (
     group by fs.fund_id, fs.period_end_date
 ),
 
--- Count positions (distinct active instruments at each period)
+-- Count positions (distinct instruments with actual exposure/value at each period)
+-- For equity: count instruments with fair_value > 0
+-- For credit: count instruments with principal_outstanding > 0
 position_counts as (
     select
-        fs.fund_id,
-        fs.period_end_date,
-        count(distinct case when i.instrument_id is not null then i.instrument_id end) as number_of_positions
-    from fund_snapshots fs
-    left join instruments i 
-        on fs.fund_id = i.fund_id
-        and i.inception_date <= fs.period_end_date  -- Instrument existed at this period
-        and (i.termination_date is null or i.termination_date > fs.period_end_date)  -- Still active at this period
-    group by fs.fund_id, fs.period_end_date
+        i.fund_id,
+        s.period_end_date,
+        count(distinct case 
+            when i.instrument_type = 'EQUITY' and s.fair_value_converted > 0 then i.instrument_id
+            when i.instrument_type = 'CREDIT' and sc.principal_outstanding_converted > 0 then i.instrument_id
+        end) as number_of_positions
+    from {{ ref('fct_instrument_snapshots') }} s
+    inner join instruments i on s.instrument_id = i.instrument_id
+    left join {{ ref('fct_instrument_snapshots_credit') }} sc
+        on s.instrument_snapshot_id = sc.instrument_snapshot_id
+    group by i.fund_id, s.period_end_date
 ),
 
 -- Calculate period net flows (contributions minus distributions)
@@ -141,15 +146,16 @@ fund_metrics as (
         f.fund_name,
         f.fund_type,
         fs.period_end_date,
-        -- Calculate fund NAV: prefer nav_amount_converted when available, fall back to calculated NAV
-        -- Set to NULL for credit funds
+        -- Fund-reported NAV (from fund admin/source system)
         case
             when f.fund_type = 'CREDIT' then null
-            else coalesce(
-                fs.nav_amount_converted,
-                coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
-            )
-        end as fund_nav,
+            else fs.nav_amount_converted
+        end as fund_nav_reported,
+        -- Calculated NAV (from instrument fair values + cash)
+        case
+            when f.fund_type = 'CREDIT' then null
+            else coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
+        end as fund_nav_calculated,
         fs.total_commitments,
         fs.total_called_capital,
         -- Calculate unfunded commitment
@@ -214,14 +220,32 @@ fund_metrics as (
         and fs.period_end_date = pnf.period_end_date
 ),
 
--- Calculate peak outstanding credit using window function
+-- Calculate peak outstanding credit and NAV variance
 final_metrics as (
     select
         fund_id,
         fund_name,
         fund_type,
         period_end_date,
-        fund_nav,
+        fund_nav_reported,
+        fund_nav_calculated,
+        -- Primary NAV: prefer reported, fall back to calculated
+        case
+            when fund_type = 'CREDIT' then null
+            else coalesce(fund_nav_reported, fund_nav_calculated)
+        end as fund_nav,
+        -- Calculate variance between reported and calculated NAV
+        case
+            when fund_nav_reported is not null and fund_nav_calculated is not null
+            then fund_nav_reported - fund_nav_calculated
+            else null
+        end as nav_variance,
+        -- Calculate variance percentage
+        case
+            when fund_nav_reported is not null and fund_nav_calculated is not null and fund_nav_calculated != 0
+            then (fund_nav_reported - fund_nav_calculated) / fund_nav_calculated
+            else null
+        end as nav_variance_pct,
         total_commitments,
         total_called_capital,
         unfunded_commitment,
