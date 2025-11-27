@@ -137,15 +137,15 @@ Table "public"."fund_snapshots" {
   "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
   "source" varchar(128)
   "source_reference" varchar(400)
-  "nav_amount" numeric(20,2) [note: 'Net Asset Value in native currency']
-  "nav_amount_converted" numeric(20,2) [note: 'Net Asset Value converted to fund base currency']
   "committed_capital" numeric(20,2)
   "called_capital" numeric(20,2)
+  "total_distributions" numeric(20,2)
+  "nav_amount" numeric(20,2) [note: 'Net Asset Value in native currency']
+  "nav_amount_converted" numeric(20,2) [note: 'Net Asset Value converted to fund base currency']
   "dpi" decimal(18,10)
   "rvpi" decimal(18,10)
   "expected_coc" decimal(18,10)
   "cash_amount" numeric(20,2)
-  "total_distributions" numeric(20,2)
   "total_expenses" numeric(20,2)
   "total_management_fees" numeric(20,2)
   "total_interest_income" numeric(20,2)
@@ -363,7 +363,7 @@ Table "public"."opportunity_countries" {
 }
 
 Table "public"."commitments" {
-  "commitment_id" varchar(64) [pk, not null]
+  "commitment_id" varchar(64) [pk, not null, ref: < "public"."commitment_snapshots"."commitment_id"]
   "fund_id" varchar(64) [not null]
   "investor_id" varchar(64) [not null, ref: < "public"."investors"."investor_id"]
   "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
@@ -427,8 +427,8 @@ Table "public"."commitment_snapshots" {
   "currency_code" varchar(3) [ref: < "public"."currencies"."currency_code"]
   "source" varchar(128)
   "source_reference" varchar(400)
-  "total_commitment" numeric(20,2)
-  "total_drawdowns" numeric(20,2)
+  "committed_capital" numeric(20,2)
+  "called_capital" numeric(20,2)
   "total_distributions" numeric(20,2)
   "created_at" timestamp
   "updated_at" timestamp
@@ -616,7 +616,7 @@ Table "public"."instruments_credit" {
   Note: 'Instrument-level committed amount mirrors source systems; FX fields optional but if provided fx_rate > 0. Enforce unique (facility_id, tranche_label) where tranche_label is not null. commitment_amount >= 0 when provided.'
 }
 
-Table "transactions" {
+Table "public"."transactions" {
   "transaction_id" varchar(64) [pk, not null]
   "transaction_type" tx_type [not null]
   "fund_id" varchar(64) [not null, ref: < "public"."funds"."fund_id"]
