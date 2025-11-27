@@ -155,11 +155,28 @@ fund_metrics as (
         -- Calculate unfunded commitment
         fs.total_commitments - fs.total_called_capital as unfunded_commitment,
         fs.total_distributions,
-        -- Set PE metrics to NULL for credit funds
-        case when f.fund_type = 'CREDIT' then null else fs.dpi end as dpi,
-        case when f.fund_type = 'CREDIT' then null else fs.rvpi end as rvpi,
-        -- Calculate TVPI as DPI + RVPI, NULL for credit funds
-        case when f.fund_type = 'CREDIT' then null else fs.dpi + fs.rvpi end as tvpi,
+        -- Calculate PE metrics from actual values for equity funds, NULL for credit funds
+        case 
+            when f.fund_type = 'CREDIT' then null 
+            else fs.total_distributions / nullif(fs.total_called_capital, 0)
+        end as dpi,
+        case 
+            when f.fund_type = 'CREDIT' then null 
+            else coalesce(
+                fs.nav_amount_converted,
+                coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
+            ) / nullif(fs.total_called_capital, 0)
+        end as rvpi,
+        -- Calculate TVPI as (NAV + Distributions) / Called Capital, NULL for credit funds
+        case 
+            when f.fund_type = 'CREDIT' then null 
+            else (
+                coalesce(
+                    fs.nav_amount_converted,
+                    coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
+                ) + fs.total_distributions
+            ) / nullif(fs.total_called_capital, 0)
+        end as tvpi,
         fs.expected_coc,
         coalesce(pcc.number_of_portfolio_companies, 0) as number_of_portfolio_companies,
         coalesce(pc.number_of_positions, 0) as number_of_positions,
