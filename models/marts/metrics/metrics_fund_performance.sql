@@ -110,6 +110,40 @@ period_net_flows as (
     group by i.fund_id, (date_trunc('quarter', cf.date) + interval '3 months - 1 day')::date
 ),
 
+-- Calculate cumulative distributions from cashflows (for equity funds)
+cumulative_distributions_calculated as (
+    select
+        i.fund_id,
+        fs.period_end_date,
+        sum(cf.amount_converted) as total_distributions_calculated
+    from fund_snapshots fs
+    cross join instruments i
+    left join {{ ref('fct_instrument_cashflows') }} cf
+        on i.instrument_id = cf.instrument_id
+        and cf.date <= fs.period_end_date
+        and cf.instrument_cashflow_type in ('DISTRIBUTION', 'DIVIDEND', 'EXIT_PROCEEDS', 'RETURN_OF_CAPITAL')
+    where i.fund_id = fs.fund_id
+        and i.instrument_type = 'EQUITY'
+    group by i.fund_id, fs.period_end_date
+),
+
+-- Calculate cumulative called capital from cashflows (for equity funds)
+cumulative_called_capital_calculated as (
+    select
+        i.fund_id,
+        fs.period_end_date,
+        sum(cf.amount_converted) as called_capital_calculated
+    from fund_snapshots fs
+    cross join instruments i
+    left join {{ ref('fct_instrument_cashflows') }} cf
+        on i.instrument_id = cf.instrument_id
+        and cf.date <= fs.period_end_date
+        and cf.instrument_cashflow_type in ('INVESTMENT', 'PURCHASE')
+    where i.fund_id = fs.fund_id
+        and i.instrument_type = 'EQUITY'
+    group by i.fund_id, fs.period_end_date
+),
+
 -- Calculate lines of credit outstanding from credit instrument snapshots
 credit_exposure as (
     select
@@ -157,32 +191,20 @@ fund_metrics as (
             else coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
         end as fund_nav_calculated,
         fs.total_commitments,
-        fs.total_called_capital,
+        -- Reported values from fund snapshots
+        fs.total_called_capital as called_capital_reported,
+        fs.total_distributions as total_distributions_reported,
+        -- Calculated values from cashflows
+        case 
+            when f.fund_type = 'EQUITY' then ccc.called_capital_calculated
+            else fs.total_called_capital  -- Use reported for credit funds
+        end as called_capital_calculated,
+        case 
+            when f.fund_type = 'EQUITY' then cdc.total_distributions_calculated
+            else fs.total_distributions  -- Use reported for credit funds
+        end as total_distributions_calculated,
         -- Calculate unfunded commitment
         fs.total_commitments - fs.total_called_capital as unfunded_commitment,
-        fs.total_distributions,
-        -- Calculate PE metrics from actual values for equity funds, NULL for credit funds
-        case 
-            when f.fund_type = 'CREDIT' then null 
-            else fs.total_distributions / nullif(fs.total_called_capital, 0)
-        end as dpi,
-        case 
-            when f.fund_type = 'CREDIT' then null 
-            else coalesce(
-                fs.nav_amount_converted,
-                coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
-            ) / nullif(fs.total_called_capital, 0)
-        end as rvpi,
-        -- Calculate TVPI as (NAV + Distributions) / Called Capital, NULL for credit funds
-        case 
-            when f.fund_type = 'CREDIT' then null 
-            else (
-                coalesce(
-                    fs.nav_amount_converted,
-                    coalesce(iv.total_instrument_fair_value, 0) + coalesce(fs.cash_amount, 0)
-                ) + fs.total_distributions
-            ) / nullif(fs.total_called_capital, 0)
-        end as tvpi,
         fs.expected_coc,
         coalesce(pcc.number_of_portfolio_companies, 0) as number_of_portfolio_companies,
         coalesce(pc.number_of_positions, 0) as number_of_positions,
@@ -218,6 +240,12 @@ fund_metrics as (
     left join period_net_flows pnf
         on f.fund_id = pnf.fund_id
         and fs.period_end_date = pnf.period_end_date
+    left join cumulative_distributions_calculated cdc
+        on f.fund_id = cdc.fund_id
+        and fs.period_end_date = cdc.period_end_date
+    left join cumulative_called_capital_calculated ccc
+        on f.fund_id = ccc.fund_id
+        and fs.period_end_date = ccc.period_end_date
 ),
 
 -- Calculate peak outstanding credit and NAV variance
@@ -247,12 +275,62 @@ final_metrics as (
             else null
         end as nav_variance_pct,
         total_commitments,
-        total_called_capital,
+        -- Reported and calculated values
+        called_capital_reported,
+        called_capital_calculated,
+        total_distributions_reported,
+        total_distributions_calculated,
+        -- Primary values: prefer reported, fall back to calculated
+        coalesce(called_capital_reported, called_capital_calculated) as total_called_capital,
+        coalesce(total_distributions_reported, total_distributions_calculated) as total_distributions,
+        -- Variance tracking
+        called_capital_reported - called_capital_calculated as called_capital_variance,
+        case
+            when called_capital_calculated != 0
+            then (called_capital_reported - called_capital_calculated) / called_capital_calculated
+            else null
+        end as called_capital_variance_pct,
+        total_distributions_reported - total_distributions_calculated as distributions_variance,
+        case
+            when total_distributions_calculated != 0
+            then (total_distributions_reported - total_distributions_calculated) / total_distributions_calculated
+            else null
+        end as distributions_variance_pct,
         unfunded_commitment,
-        total_distributions,
-        dpi,
-        rvpi,
-        tvpi,
+        -- Calculated DPI/RVPI/TVPI from actual values
+        case
+            when fund_type = 'CREDIT' then null
+            else coalesce(total_distributions_reported, total_distributions_calculated) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as dpi_calculated,
+        case
+            when fund_type = 'CREDIT' then null
+            else coalesce(fund_nav_reported, fund_nav_calculated) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as rvpi_calculated,
+        case
+            when fund_type = 'CREDIT' then null
+            else (coalesce(fund_nav_reported, fund_nav_calculated) + 
+                  coalesce(total_distributions_reported, total_distributions_calculated)) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as tvpi_calculated,
+        -- Primary DPI/RVPI/TVPI (use calculated since they're derived from primary NAV/distributions/called capital)
+        case
+            when fund_type = 'CREDIT' then null
+            else coalesce(total_distributions_reported, total_distributions_calculated) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as dpi,
+        case
+            when fund_type = 'CREDIT' then null
+            else coalesce(fund_nav_reported, fund_nav_calculated) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as rvpi,
+        case
+            when fund_type = 'CREDIT' then null
+            else (coalesce(fund_nav_reported, fund_nav_calculated) + 
+                  coalesce(total_distributions_reported, total_distributions_calculated)) / 
+                 nullif(coalesce(called_capital_reported, called_capital_calculated), 0)
+        end as tvpi,
         expected_coc,
         number_of_portfolio_companies,
         number_of_positions,

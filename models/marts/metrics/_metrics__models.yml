@@ -889,6 +889,11 @@ models:
       Combines fund snapshots with aggregated instrument valuations to deliver a complete view 
       of fund performance over time.
       
+      **NEW: Reported vs Calculated Reconciliation**
+      This model now includes both reported values (from fund administrators) and calculated values 
+      (from instrument-level cashflows) for key metrics, enabling data quality monitoring and 
+      reconciliation. Variance columns track differences between reported and calculated values.
+      
       **Grain**: One row per fund per period_end_date
       
       **Source Systems**: Fund Administration (ADMIN), Portfolio Management (PM)
@@ -900,6 +905,7 @@ models:
       - Portfolio composition monitoring (company and position counts)
       - Credit exposure and utilization tracking
       - Fund-level NAV reconciliation
+      - Data quality monitoring (reported vs calculated variance tracking)
       
       **Example Query**:
       ```sql
@@ -919,17 +925,23 @@ models:
       WHERE period_end_date = (SELECT MAX(period_end_date) FROM metrics_fund_performance)
       ORDER BY fund_name;
       
-      -- Fund performance trend over time
+      -- Data quality check: identify significant variances
       SELECT 
-        period_end_date,
         fund_name,
-        fund_nav,
-        tvpi,
-        dpi
+        period_end_date,
+        nav_variance_pct,
+        called_capital_variance_pct,
+        distributions_variance_pct
       FROM metrics_fund_performance
-      WHERE fund_id = 'FUND123'
-      ORDER BY period_end_date;
+      WHERE fund_type = 'EQUITY'
+        AND (
+          ABS(nav_variance_pct) > 0.02
+          OR ABS(called_capital_variance_pct) > 0.001
+          OR ABS(distributions_variance_pct) > 0.001
+        )
+      ORDER BY period_end_date DESC;
       ```
+    
     columns:
       - name: fund_id
         description: "Fund identifier - Foreign Key to dim_funds (part of unique key)"
@@ -950,9 +962,21 @@ models:
           - not_null
       
       - name: fund_nav
-        description: "Fund Net Asset Value - prefers nav_amount_converted from fund snapshots when available, otherwise calculated as sum of instrument fair values + fund cash amount for backward compatibility"
+        description: "Primary Fund Net Asset Value - coalesce(fund_nav_reported, fund_nav_calculated). Prefers reported value from fund admin, falls back to calculated value."
         tests:
           - not_null
+      
+      - name: fund_nav_reported
+        description: "NAV as reported by fund administrator from fund snapshots (nav_amount_converted)"
+      
+      - name: fund_nav_calculated
+        description: "NAV calculated from instrument-level data = sum(instrument fair values) + fund cash amount"
+      
+      - name: nav_variance
+        description: "Absolute difference between reported and calculated NAV = fund_nav_reported - fund_nav_calculated"
+      
+      - name: nav_variance_pct
+        description: "NAV variance as percentage of calculated NAV = (fund_nav_reported - fund_nav_calculated) / fund_nav_calculated"
       
       - name: total_commitments
         description: "Total committed capital from investor commitments"
@@ -960,30 +984,63 @@ models:
           - not_null
       
       - name: total_called_capital
-        description: "Total called capital from capital call transactions"
+        description: "Primary called capital - coalesce(called_capital_reported, called_capital_calculated). Prefers reported value from fund admin, falls back to calculated value from cashflows."
         tests:
           - not_null
+      
+      - name: called_capital_reported
+        description: "Called capital as reported by fund administrator from fund snapshots"
+      
+      - name: called_capital_calculated
+        description: "Called capital calculated from instrument cashflows = sum(INVESTMENT, PURCHASE cashflows)"
+      
+      - name: called_capital_variance
+        description: "Absolute difference between reported and calculated called capital = called_capital_reported - called_capital_calculated"
+      
+      - name: called_capital_variance_pct
+        description: "Called capital variance as percentage of calculated = (called_capital_reported - called_capital_calculated) / called_capital_calculated"
       
       - name: unfunded_commitment
         description: "Unfunded commitment = total_commitments - total_called_capital"
       
       - name: total_distributions
-        description: "Total distributions to investors"
+        description: "Primary distributions - coalesce(total_distributions_reported, total_distributions_calculated). Prefers reported value from fund admin, falls back to calculated value from cashflows."
+      
+      - name: total_distributions_reported
+        description: "Distributions as reported by fund administrator from fund snapshots"
+      
+      - name: total_distributions_calculated
+        description: "Distributions calculated from instrument cashflows = sum(DISTRIBUTION, DIVIDEND, EXIT_PROCEEDS, RETURN_OF_CAPITAL cashflows)"
+      
+      - name: distributions_variance
+        description: "Absolute difference between reported and calculated distributions = total_distributions_reported - total_distributions_calculated"
+      
+      - name: distributions_variance_pct
+        description: "Distributions variance as percentage of calculated = (total_distributions_reported - total_distributions_calculated) / total_distributions_calculated"
+      
+      - name: dpi_calculated
+        description: "DPI calculated from primary values = total_distributions / total_called_capital"
+      
+      - name: rvpi_calculated
+        description: "RVPI calculated from primary values = fund_nav / total_called_capital"
+      
+      - name: tvpi_calculated
+        description: "TVPI calculated from primary values = (fund_nav + total_distributions) / total_called_capital"
       
       - name: dpi
-        description: "Distributions to Paid-In capital ratio (DPI)"
+        description: "Primary Distributions to Paid-In capital ratio - calculated from primary total_distributions and total_called_capital values"
         tests:
           - null_for_fund_type:
               fund_type_value: 'CREDIT'
       
       - name: rvpi
-        description: "Residual Value to Paid-In capital ratio (RVPI)"
+        description: "Primary Residual Value to Paid-In capital ratio - calculated from primary fund_nav and total_called_capital values"
         tests:
           - null_for_fund_type:
               fund_type_value: 'CREDIT'
       
       - name: tvpi
-        description: "Total Value to Paid-In capital ratio = DPI + RVPI"
+        description: "Primary Total Value to Paid-In capital ratio - calculated from primary fund_nav, total_distributions, and total_called_capital values"
         tests:
           - null_for_fund_type:
               fund_type_value: 'CREDIT'
