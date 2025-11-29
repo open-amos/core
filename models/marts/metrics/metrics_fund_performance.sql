@@ -161,16 +161,21 @@ credit_exposure as (
 ),
 
 -- Calculate total interest income from INTEREST cashflows for credit funds
+-- This is CUMULATIVE interest income (total earned to date)
 credit_interest_income as (
     select
         i.fund_id,
-        (date_trunc('quarter', cf.date) + interval '3 months - 1 day')::date as period_end_date,
+        fs.period_end_date,
         sum(cf.amount_converted) as total_interest_income
-    from {{ ref('fct_instrument_cashflows') }} cf
-    inner join instruments i on cf.instrument_id = i.instrument_id
-    where cf.instrument_cashflow_type = 'INTEREST'
+    from fund_snapshots fs
+    cross join instruments i
+    left join {{ ref('fct_instrument_cashflows') }} cf
+        on i.instrument_id = cf.instrument_id
+        and cf.date <= fs.period_end_date
+        and cf.instrument_cashflow_type = 'INTEREST'
+    where i.fund_id = fs.fund_id
         and i.instrument_type = 'CREDIT'
-    group by i.fund_id, (date_trunc('quarter', cf.date) + interval '3 months - 1 day')::date
+    group by i.fund_id, fs.period_end_date
 ),
 
 -- Combine all metrics
