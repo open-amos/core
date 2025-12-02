@@ -36,16 +36,6 @@ The recommended way to customize AMOS Core is to create a new dbt project and ad
 
 AMOS is open source and welcomes contributions. Report bugs, suggest features, add integration patterns, or submit pull requests.
 
-## Support
-
-- **Documentation**: [docs.amos.tech](https://docs.amos.tech)
-- **Issues**: GitHub Issues
-
-## Related Projects
-- **[AMOS Starter](../starter)** - Coordinator and entry point
-- **[AMOS Source Example](../source-example)** - Source integration patterns
-- **[AMOS Dashboard](../dashboard-example)** - Example analytics and KPI dashboards built on AMOS Core
-
 ## Licensing
 
 This subproject is part of the AMOS public preview. Licensing terms will be finalized before version 1.0.
