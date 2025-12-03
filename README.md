@@ -13,7 +13,7 @@ AMOS Core is a dbt project providing a canonical model, curated marts and BI-rea
 
 ## Quick Start
 
-Install and run [Amos Starter](https://github.com/open-amos/starter) (recommended) or add [AMOS Core](https://github.com/open-amos/core) as a dependency to your dbt project.
+Install and run [Amos](https://github.com/open-amos/amos) (recommended) or add [AMOS Core](https://github.com/open-amos/core) as a dependency to your dbt project.
 
 ## Contents
 
