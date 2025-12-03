@@ -4,11 +4,11 @@
 
 # AMOS Core 
 
+The dbt models and SQL logic that power the AMOS platform. AMOS Core provides a canonical model, curated marts and BI-ready metrics for private markets.
+
 ![image](https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge) ![image](https://img.shields.io/badge/status-public--beta-yellow?style=for-the-badge) ![image](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white)
 
 ---
-
-AMOS Core is a dbt project providing a canonical model, curated marts and BI-ready metrics for private markets, to be used in conjunction with source connectors like [AMOS Source Example](https://github.com/open-amos/source-example). It is the central piece of the AMOS data stack.
 
 ## Quick Start
 
