@@ -1,6 +1,6 @@
 # AMOS
 
-![image](https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge) ![image](https://img.shields.io/badge/status-proof--of--concept-yellow?style=for-the-badge) ![image](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white)
+![image](https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge) ![image](https://img.shields.io/badge/status-public--beta-yellow?style=for-the-badge) ![image](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white)
 
 ---
 [Overview](https://github.com/open-amos/) | [Starter](https://github.com/open-amos/starter) | **Core** | [Source Example](https://github.com/open-amos/source-example) | [Dashboard](https://github.com/open-amos/dashboard-example)
@@ -35,16 +35,6 @@ The recommended way to customize AMOS Core is to create a new dbt project and ad
 ## Contributing
 
 AMOS is open source and welcomes contributions. Report bugs, suggest features, add integration patterns, or submit pull requests.
-
-## Support
-
-- **Documentation**: [docs.amos.tech](https://docs.amos.tech)
-- **Issues**: GitHub Issues
-
-## Related Projects
-- **[AMOS Starter](../starter)** - Coordinator and entry point
-- **[AMOS Source Example](../source-example)** - Source integration patterns
-- **[AMOS Dashboard](../dashboard-example)** - Example analytics and KPI dashboards built on AMOS Core
 
 ## Licensing
 
