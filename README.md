@@ -1,9 +1,10 @@
+[AMOS](https://github.com/open-amos/amos) | **Core** | [Source Example](https://github.com/open-amos/source-example) | [Dashboard](https://github.com/open-amos/dashboard)
+
+---
+
 # AMOS Core 
 
 ![image](https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge) ![image](https://img.shields.io/badge/status-public--beta-yellow?style=for-the-badge) ![image](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white)
-
----
-[AMOS](https://github.com/open-amos/amos) | **Core** | [Source Example](https://github.com/open-amos/source-example) | [Dashboard](https://github.com/open-amos/dashboard)
 
 ---
 
