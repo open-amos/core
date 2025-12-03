@@ -9,7 +9,7 @@
 
 # AMOS Core 
 
-AMOS Core is a dbt project providing a canonical model, curated marts and BI-ready metrics for private markets, to be used in conjunction with source connectors like [AMOS Source Example](../source-example). It is the central piece of the [AMOS data stack](../).
+AMOS Core is a dbt project providing a canonical model, curated marts and BI-ready metrics for private markets, to be used in conjunction with source connectors like [AMOS Source Example](../source-example). It is the central piece of the AMOS data stack.
 
 ## Quick Start
 
