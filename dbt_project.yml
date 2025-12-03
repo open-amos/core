@@ -8,7 +8,6 @@ macro-paths: ["macros"]
 
 seeds:
   amos_core:
-    +database: "{{ env_var('DBT_CORE_DATABASE', 'CORE') }}"
     +schema: REFERENCE
     +quote_columns: false
     +tags: ["reference", "seed", "core"]
@@ -17,7 +16,6 @@ models:
   amos_core:
     marts:
       +materialized: table
-      +database: "{{ env_var('DBT_CORE_DATABASE', 'CORE') }}"
       +schema: public
       +tags: ["marts", "core"]
       
