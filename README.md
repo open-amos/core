@@ -1,4 +1,4 @@
-[AMOS](https://github.com/open-amos/amos) | **Core** | [Source Example](https://github.com/open-amos/source-example) | [Dashboard](https://github.com/open-amos/dashboard)
+[AMOS](https://github.com/open-amos/amos) | **Core** | [Reconciliation](https://github.com/open-amos/reconciliation) | [Dashboard](https://github.com/open-amos/dashboard) | [Source Example](https://github.com/open-amos/source-example)
 
 ---
 
